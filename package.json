@@ -1,0 +1,35 @@
+{
+  "name": "phtheirichthys-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "@types/geojson": "^7946.0.14",
+    "@types/leaflet": "^1.9.12",
+    "@types/leaflet-providers": "^1.2.4",
+    "bulma": "^1.0.1",
+    "leaflet": "^1.9.4",
+    "leaflet-extra-markers": "^1.2.2",
+    "leaflet-graticule": "^0.0.1",
+    "leaflet-providers": "^2.0.0",
+    "leaflet-rotatedmarker": "^0.2.0",
+    "leaflet-sidebar-v2": "^3.2.3",
+    "phtheirichthys": "file:../phtheirichthys/pkg",
+    "vue": "^3.4.21",
+    "vue-router": "4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vite-plugin-wasm": "^3.3.0",
+    "vue-tsc": "^2.0.6"
+  }
+}
