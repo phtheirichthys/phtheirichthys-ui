@@ -21,7 +21,7 @@
     "leaflet-providers": "^2.0.0",
     "leaflet-rotatedmarker": "^0.2.0",
     "leaflet-sidebar-v2": "^3.2.3",
-    "phtheirichthys": "file:../phtheirichthys/pkg",
+    "@phtheirichthys/phtheirichthys": "^0.1.35",
     "vue": "^3.4.21",
     "vue-router": "4"
   },
