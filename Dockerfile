@@ -1,7 +1,10 @@
 FROM node:alpine as build-stage
+
+ARG NODE_AUTH_TOKEN
+
 WORKDIR /app
 COPY package*.json ./
-COPY .yarnrc ./
+COPY .npmrc ./
 RUN yarn config set network-timeout 300000
 RUN yarn install
 COPY ./ .
