@@ -13,6 +13,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+    - run: npm set '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}'
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - run: npm set @phtheirichthys:registry=https://npm.pkg.github.com
+
+
     - name: Prepare
       id: prepare
       run: |
@@ -42,7 +52,7 @@ jobs:
 
     - name: Docker Buildx (build)
       run: |
-          docker buildx build --output "type=image,push=false" --build-arg NODE_AUTH_TOKE=${{ secrets.GITHUB_TOKEN }} ${{ steps.prepare.outputs.buildx_args }}
+          docker buildx build --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
 
     - name: Login to DockerHub
       if: success() && github.event_name != 'pull_request'
