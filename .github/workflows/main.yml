@@ -21,6 +21,8 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - run: npm set @phtheirichthys:registry=https://npm.pkg.github.com
+    - run: npm install
+    - run: npm run build
 
 
     - name: Prepare
