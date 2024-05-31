@@ -1,6 +1,7 @@
 FROM node:alpine as build-stage
 
-ARG NODE_AUTH_TOKEN
+ARG NODE_AUTH_TOKE
+ENV NODE_AUTH_TOKEN=${NODE_AUTH_TOKEN}
 
 WORKDIR /app
 COPY package*.json ./

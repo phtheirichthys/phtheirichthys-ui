@@ -42,7 +42,7 @@ jobs:
 
     - name: Docker Buildx (build)
       run: |
-          docker buildx build --output "type=image,push=false" --build-arg NODE_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }} ${{ steps.prepare.outputs.buildx_args }}
+          docker buildx build --output "type=image,push=false" --build-arg NODE_AUTH_TOKE=${{ secrets.GITHUB_TOKEN }} ${{ steps.prepare.outputs.buildx_args }}
 
     - name: Login to DockerHub
       if: success() && github.event_name != 'pull_request'
