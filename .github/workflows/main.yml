@@ -18,12 +18,11 @@ jobs:
         node-version: 20
         cache: 'npm'
     - run: npm set '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}'
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.PHTHEIRICHTHYS_REGISTRY }}
     - run: npm set @phtheirichthys:registry=https://npm.pkg.github.com
     - run: npm install
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.PHTHEIRICHTHYS_REGISTRY }}
     - run: npm run build
-
 
     - name: Prepare
       id: prepare
