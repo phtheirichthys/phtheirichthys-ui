@@ -16,7 +16,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: 20
-        cache: 'npm'
     - run: npm set '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}'
     - run: npm set @phtheirichthys:registry=https://npm.pkg.github.com
     - run: npm install
