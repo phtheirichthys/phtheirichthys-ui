@@ -14,7 +14,7 @@ const map = ref(null)
 <style scoped>
 #map {
   position: absolute;
-  top: 56;
+  top: 0;
   bottom: 0;
   left: 0;
   width: 100%;
