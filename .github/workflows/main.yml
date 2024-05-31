@@ -19,7 +19,7 @@ jobs:
         cache: 'npm'
     - run: npm set '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}'
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.PHTHEIRICHTHYS_REGISTRY }}
     - run: npm set @phtheirichthys:registry=https://npm.pkg.github.com
     - run: npm install
     - run: npm run build
