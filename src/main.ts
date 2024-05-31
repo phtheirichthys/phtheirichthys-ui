@@ -3,7 +3,7 @@ import { createWebHistory, createRouter } from 'vue-router'
 
 import App from './App.vue'
 
-import * as phtheirichthys from 'phtheirichthys'
+import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 import { WindService } from './lib/wind'
 import { PolarService } from './lib/polar'
 
@@ -35,13 +35,13 @@ createApp(App)
   .use(router)
   .mount('#app')
 
-// phtheirichthys.add_wind_provider().then(() => {
-//     try {
-//         let status = WindService.status()
-//         console.log(status)
-//     } catch (e) {
-//         console.log("Error getting status")    
-//     }
-// })
+phtheirichthys.add_wind_provider().then(() => {
+    try {
+        let status = WindService.status()
+        console.log(status)
+    } catch (e) {
+        console.log("Error getting status")    
+    }
+})
 
 PolarService.add_polar()

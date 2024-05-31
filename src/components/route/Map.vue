@@ -43,7 +43,7 @@ onMounted(() => {
       onMouseMove(Point.fromLatLng(latlng))
     })
 
-    let sidebar = L.control.sidebar({
+    L.control.sidebar({
       autopan: false,       // whether to maintain the centered map point when opening the sidebar
       closeButton: true,    // whether t add a close button to the panes
       container: 'sidebar', // the DOM container or #ID of a predefined sidebar container that should be used
@@ -63,7 +63,7 @@ function onMouseMove(point: Point) {
 }
 
 function displayLegend() {
-  const pad = (num: number, places: number) => String(num).padStart(places, '0')
+  //const pad = (num: number, places: number) => String(num).padStart(places, '0')
   if (legend.value) {
     var leg = ""
     // if (this.snake) {

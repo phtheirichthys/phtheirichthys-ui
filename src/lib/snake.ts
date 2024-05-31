@@ -1,4 +1,4 @@
-import * as phtheirichthys from 'phtheirichthys'
+import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 import { Wind, WindService } from './wind'
 import { Heading } from './position'
 

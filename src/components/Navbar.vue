@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, Ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 type Themes = "light" | "dark" | "system"
 const theme = ref("light" as Themes)
 
 onMounted(() => {
-  let theme = document.documentElement.getAttribute('data-theme')
+  //let theme = document.documentElement.getAttribute('data-theme')
 })
 
 function light() {

@@ -10,10 +10,10 @@ const props = defineProps<{
 }>()
 
 const layer = new L.LayerGroup()
-const markerLayer = L.layerGroup().addTo(layer)
+//const markerLayer = L.layerGroup().addTo(layer)
 const linesLayer = L.layerGroup().addTo(layer)
 
-var progs: Array<any> = []
+//var progs: Array<any> = []
 
 props.layerControl.addOverlay(layer, "<i class='fa fa-route'></i> Snake")
 

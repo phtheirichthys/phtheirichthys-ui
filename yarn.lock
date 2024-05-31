@@ -132,6 +132,11 @@
   resolved "https://registry.yarnpkg.com/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.15.tgz#d7c6e6755c78567a951e04ab52ef0fd26de59f32"
   integrity sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==
 
+"@phtheirichthys/phtheirichthys@^0.1.35":
+  version "0.1.35"
+  resolved "https://npm.pkg.github.com/download/@phtheirichthys/phtheirichthys/0.1.35/e1d57053796aa0a5793fe2f017e83339b06a4d0d#e1d57053796aa0a5793fe2f017e83339b06a4d0d"
+  integrity sha512-AbNpoZNJAcUaphVZTi2qjrYM4K67eFKKYOALBjrSc5MN476jKmYnBSEKHzzsiW7wkEGsWicGDZR8Am7ISjpP8Q==
+
 "@rollup/rollup-android-arm-eabi@4.18.0":
   version "4.18.0"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-android-arm-eabi/-/rollup-android-arm-eabi-4.18.0.tgz#bbd0e616b2078cd2d68afc9824d1fadb2f2ffd27"
@@ -441,6 +446,11 @@ he@^1.2.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
+leaflet-auto-graticule@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/leaflet-auto-graticule/-/leaflet-auto-graticule-2.0.0.tgz#66ef29397b74fc520d6c482acd6bdcea87108561"
+  integrity sha512-gXTR9+WZ2sJY/KSyK9tr0G30D1jOm0cT7yxNPwwJMUromXr1HH661WovRoGD2Yvqoq9cG6MIuXiYCadtYIdD8w==
+
 leaflet-extra-markers@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/leaflet-extra-markers/-/leaflet-extra-markers-1.2.2.tgz#e0887ef282fcab53aaf7a5bb6d617ded54aee1d9"
@@ -499,9 +509,6 @@ path-browserify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/path-browserify/-/path-browserify-1.0.1.tgz#d98454a9c3753d5790860f16f68867b9e46be1fd"
   integrity sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==
-
-"phtheirichthys@file:../phtheirichthys/pkg":
-  version "0.1.35"
 
 picocolors@^1.0.0:
   version "1.0.1"

@@ -1,4 +1,4 @@
-import * as phtheirichthys from 'phtheirichthys'
+import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 import { Point } from './position';
 import { Speed } from './utils';
 

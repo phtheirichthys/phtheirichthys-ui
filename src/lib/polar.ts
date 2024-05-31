@@ -1,4 +1,4 @@
-import * as phtheirichthys from 'phtheirichthys'
+import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 
 export module PolarService {
     export function add_polar() {
