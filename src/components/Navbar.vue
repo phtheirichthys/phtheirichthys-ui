@@ -78,16 +78,6 @@ function switchTheme() {
             </a>
           </div>
         </div>
-        <div class="navbar-item">
-          <div class="buttons">
-            <a class="button is-primary">
-              <strong>Sign up</strong>
-            </a>
-            <a class="button is-light">
-              Log in
-            </a>
-          </div>
-        </div>
       </div>
     </div>
   </nav>
@@ -122,6 +112,10 @@ function switchTheme() {
 
 .navbar-item.is-active {
   background-color: hsla(var(--bulma-navbar-dropdown-item-h),var(--bulma-navbar-dropdown-item-s),var(--bulma-navbar-dropdown-item-color-l),.2);
+}
+
+.navbar-dropdown {
+  margin-left: -101.95px;
 }
 /* 
 .bd-cycle {

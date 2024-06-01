@@ -8,15 +8,31 @@ import Navbar from './Navbar.vue'
     <div class="hero-head">
       <Navbar />
     </div>
-    <div class="hero-body">
-      <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
-        <thead>
-          <tr>
-            <th class="is-fullwidth"><abbr title="Name">Name</abbr></th>
-            <th class=""><abbr title="Name">Name</abbr></th>
-          </tr>
-        </thead>
-      </table>
+    <div class="hero-body is-flex-direction-column">
+      <div class="container">
+        <div class="columns">
+          <div class="column is-full">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th class="is-fullwidth"><abbr title="Name">Name</abbr></th>
+                  <th class=""><abbr title="Name">Name</abbr></th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="columns">
+          <div class="column is-half">
+            detail
+          </div>
+          <div class="column is-half">
+            carte
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </template>
