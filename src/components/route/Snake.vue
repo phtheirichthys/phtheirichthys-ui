@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import L from 'leaflet'
 import { onMounted } from 'vue'
-import { HeadingHeading, Point } from '../../lib/position'
+import { Point } from '../../lib/position'
 import { SnakeService } from '../../lib/snake'
 
 const props = defineProps<{
@@ -39,7 +39,7 @@ onMounted(() => {
     if(b == 360) b = 0
 
     try {
-      let snake_result = SnakeService.eval_snake(new HeadingHeading(b))
+      let snake_result = SnakeService.eval_snake({heading: b})
 
       display(snake_result)
       console.log("Snake", snake_result)

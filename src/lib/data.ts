@@ -1,85 +1,74 @@
-export module DataService {
-    const SETTINGS = "_settings_"
-    const BOATS = "_boats_"
-    const RACES = "_races_"
+import { compress, decompress } from "lz-string"
 
-    const EMPTY = ""
+export class Data {
+    prefix: string
+    boat: boolean
+    race: boolean
+    compress: boolean
+    static RACES = new Data("_races_", false, false)
 
-    const PAN = "_pan_"
-    const ZOOM = "_zoom_"
-
-    interface Model {
-        model: string,
-        context: {
-            boat: boolean,
-            race: boolean
-        }
+    constructor(prefix: string, boat: boolean, race: boolean, compress: boolean = false) {
+        this.prefix = prefix
+        this.boat = boat
+        this.race = race
+        this.compress = compress
     }
 
-    const models: Array<Model> = [
-        { model: SETTINGS, context: { boat: false, race: false } },
-        { model: BOATS, context: { boat: false, race: false } },
-        { model: RACES, context: { boat: false, race: false } },
-        { model: PAN, context: { boat: true, race: true } },
-        { model: ZOOM, context: { boat: true, race: true } },
-        { model: EMPTY, context: { boat: true, race: true } },
-    ]
-
-    function suffix(boat: String | null, race: String) {
-        return ((boat && boat != "-") ? boat + "_" : "") + race
+    key(ctx: Context): string {
+        let key = this.prefix
+        if(this.boat && ctx.boat && ctx.boat != '-') {
+            key += "_"  + ctx.boat
+        } 
+        if(this.race && ctx.race && ctx.race != '-') {
+            key += "_"  + ctx.race
+        }
+        return key
     }
 
-
-    interface Info {
-        model?: string,
-        boat?: string,
-        race?: string,
-        context?: {
-            boat: boolean,
-            race: boolean
-        }
-    }
-
-    function getInfoFromKey(key: String) {
-        let res: Info = {
-        }
-        for (var m in models) {
-            if (key.startsWith(models[m].model)) {
-                res.model = models[m].model
-                res.context = models[m].context
-                var infos = key.substring(res.model.length).split("_")
-
-                if (infos.length > 0) {
-                    res.race = infos[infos.length - 1]
-
-                    for (var i = 0; i < infos.length - 1; i++) {
-                        if (i > 0)
-                            res.boat += "_"
-                        else
-                            res.boat = ""
-                        res.boat += infos[i]
-                    }
+    getItem<T>(ctx: Context = {boat: null, race: null}): T | null {
+        function reviver(_key: string, value: any) {
+            if(typeof value === 'object' && value !== null) {
+                if (value.dataType === 'Map') {
+                    return new Map(value.value);
                 }
-                return res
+            }
+            return value;
+        }
+          
+        let item = localStorage.getItem(this.key(ctx));
+
+        if(this.compress) {
+            item = item ? decompress(item) : null
+        }
+
+        return item ? JSON.parse(item, reviver) as T : null;    
+    }
+
+    setItem<T>(value: T, ctx: Context = {boat: null, race: null}): void {
+        function replacer(_key: string, value: any) {
+            if(value instanceof Map) {
+                return {
+                dataType: 'Map',
+                value: Array.from(value.entries()), // or with spread: value: [...value]
+                };
+            } else {
+                return value;
             }
         }
 
-        return res
-    }
+        console.log("value", value)
+        let item = JSON.stringify(value, replacer)
+        console.log("item", item)
 
-    function clean() {
-        //todo
-    }
+        if(this.compress) {
+            item = compress(item)
+        }
 
-    // ***************
-    // ** SETTINGS
-    // ***************
+        localStorage.setItem(this.key(ctx), item);
+    }
+}
 
-    function getSettings() {
-        return JSON.parse(localStorage.getItem(SETTINGS)!)
-    }
-    
-    function saveSettings(settings: any) {
-        localStorage.setItem(SETTINGS, JSON.stringify(settings))
-    }
+interface Context {
+    boat: string | null
+    race: string | null
 }

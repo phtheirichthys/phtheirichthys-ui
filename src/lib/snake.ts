@@ -1,9 +1,8 @@
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 import { Wind, WindService } from './wind'
-import { Heading } from './position'
 
 export module SnakeService {
-    export function eval_snake(heading: Heading) {
+    export function eval_snake(heading: phtheirichthys.Heading) {
 
         let boat_settings = {
             heading: {twa: 90},
