@@ -11,7 +11,7 @@ import Land from '../Land.vue'
 import { ref, onMounted, Ref } from 'vue'
 import { Wind, WindService } from '../../lib/wind';
 import { BoatConfig, Point } from '../../lib/position';
-import { RaceService } from '../../lib/races'
+
 
 const props = defineProps<{
   boat: string,

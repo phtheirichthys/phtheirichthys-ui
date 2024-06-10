@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref, Ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import Navbar from './Navbar.vue'
 import { RaceService } from '../lib/races'
 import { PolarService } from '../lib/polars'
 import { Race, Buoy as IBuoy } from '@phtheirichthys/phtheirichthys'
-import draggable from 'vuedraggable'
+//import draggable from 'vuedraggable'
 
 import Buoy from './Buoy.vue'
 import L from 'leaflet';
@@ -70,13 +70,13 @@ function validate(buoy: IBuoy) {
   console.log("validate", buoy.validated)
 }
 
-function moveBuoy(event: any) {
+/*function moveBuoy(event: any) {
   if (event.moved) {
     console.log({from: event.moved.oldIndex, to: event.moved.newIndex})
 
     //race.value.buoys[event.moved.newIndex] = race.value.buoys.splice(event.moved.oldIndex, 1, race.value.buoys[event.moved.newIndex])[0]
   }
-}
+}*/
 
 const layer = L.layerGroup()
 onMounted(() => {

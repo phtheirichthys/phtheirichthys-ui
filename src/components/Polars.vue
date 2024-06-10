@@ -59,10 +59,10 @@ function importPolar() {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="polar in polars" @click="select(polar)">
+                <tr v-for="polar in polars" @click="select(polar.id)">
                   <td>{{ polar.label }}</td>
                   <td>
-                    <button class="button is-small is-white" @click="remove(polar)">
+                    <button class="button is-small is-white" @click="remove(polar.id)">
                       <span class="icon is-small">
                         <i class="fas fa-trash"></i>
                       </span>
