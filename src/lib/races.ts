@@ -5,9 +5,9 @@ export module RaceService {
     let races: Map<string, Race> = Data.RACES.getItem() ?? new Map<string, Race>()
 
     function addRace(race: Race) {
-        let id = race.race_id.id.toString()
-        if(race.race_id.leg) {
-            id += "#" + race.race_id.leg
+        let id = race.id.toString()
+        if(race.leg) {
+            id += "#" + race.leg
         }
         console.log(races)
         races.set(id, race)
@@ -26,14 +26,30 @@ export module RaceService {
 
     export function newRace(): Race {
         return {
-            race_id: {
-                id: 0,
-                leg: 1
-            },
+            id: "",
+            leg: 1,
             name: "",
             boat: "",
             start: {lat: 0, lon: 0},
-            waypoints: []
+            buoys: []
         }
+    }
+
+    export function save(race: Race) {
+        races.set(race.id, race)
+
+        Data.RACES.setItem(races)
+    }
+
+    export function remove(race: Race) {
+        console.log("remove", race)
+        races.delete(race.id)
+        console.log("remove", race.id, races)
+
+        Data.RACES.setItem(races)
+    }
+
+    export function get(id: string): Race {
+        return races.get(id)
     }
 }

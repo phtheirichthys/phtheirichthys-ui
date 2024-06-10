@@ -117,6 +117,54 @@ function switchTheme() {
 .navbar-dropdown {
   margin-left: -101.95px;
 }
+
+
+
+.navbar-item.is-sun {
+  --bulma-navbar-dropdown-item-h:42deg;
+  --bulma-navbar-dropdown-item-s:100%;
+  --bulma-navbar-dropdown-item-color-l:53%;
+}
+
+.navbar-item span.text {
+  color: var(--bulma-text-strong);
+  padding-left: 0.5em;
+}
+
+.navbar-item.is-active.is-sun {
+  --bulma-navbar-h:42deg;
+  --bulma-navbar-s:100%;
+  --bulma-navbar-item-color-l:53%;
+}
+
+.navbar-item.is-moon {
+  --bulma-navbar-dropdown-item-h:256deg;
+  --bulma-navbar-dropdown-item-s:89%;
+  --bulma-navbar-dropdown-item-color-l:65%;
+}
+
+.navbar-item.is-active.is-moon {
+  --bulma-navbar-h:256deg;
+  --bulma-navbar-s:89%;
+  --bulma-navbar-item-color-l:65%;
+}
+
+.navbar-item.is-system {
+  --bulma-navbar-dropdown-item-h:153deg;
+  --bulma-navbar-dropdown-item-s:53%;
+  --bulma-navbar-dropdown-item-color-l:53%;
+}
+
+.navbar-item.is-system {
+  --bulma-navbar-h:153deg;
+  --bulma-navbar-s:53%;
+  --bulma-navbar-item-color-l:53%;
+}
+
+.navbar-item.is-active {
+  background-color: hsla(var(--bulma-navbar-dropdown-item-h),var(--bulma-navbar-dropdown-item-s),var(--bulma-navbar-dropdown-item-color-l),.2);
+}
+
 /* 
 .bd-cycle {
   --h:var(--bulma-sun-h);

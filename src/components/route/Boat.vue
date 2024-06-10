@@ -35,6 +35,9 @@ function drawBoat() {
 }
 </script>
 
+<template>
+</template>
+
 <style>
 .leaflet-boat-icon {
   background: url('/images/boats.png') no-repeat 0 0;

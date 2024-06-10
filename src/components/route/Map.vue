@@ -5,12 +5,22 @@ import 'leaflet-sidebar-v2'
 import Boat from './Boat.vue'
 import Graticule from './Graticule.vue'
 import Snake from './Snake.vue'
+import Race from './Race.vue'
+import Land from '../Land.vue'
 
 import { ref, onMounted, Ref } from 'vue'
 import { Wind, WindService } from '../../lib/wind';
 import { BoatConfig, Point } from '../../lib/position';
+import { RaceService } from '../../lib/races'
+
+const props = defineProps<{
+  boat: string,
+  race: string,
+}>()
 
 const boat: Ref<BoatConfig> = ref(new BoatConfig())
+
+const navigating = ref(false)
 
 var legend = ref(L.DomUtil.create("div"))
 
@@ -21,6 +31,7 @@ var wind: Ref<Wind | null> = ref(null)
 
 onMounted(() => {
   map.whenReady(() => {
+
     var imagery = L.tileLayer.provider('CartoDB.PositronNoLabels').addTo(map)
     layerControl.addBaseLayer(imagery, "Standard");
     var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png')
@@ -92,12 +103,18 @@ function centerAndZoom() {
 function pan() {
 
 }
+
+function navigate() {
+  navigating.value = true
+  alert("navigate !!!")
+}
 </script>
 
 <template>
   <Boat :boat="boat" :layer="map" />
   <Graticule :layer="map" />
   <Snake :map="map" :layer-control="layerControl" />
+  <Land :layer="map" />
 
   <div id="sidebar" class="leaflet-sidebar collapsed">
     <!-- Nav tabs -->
@@ -106,12 +123,13 @@ function pan() {
         <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
         <li><a role="tab" @click="center" @dblclick.stop="centerAndZoom"><i class="fa fa-dot-circle"></i></a></li>
         <li><a role="tab" @click="pan"><i class="fa fa-expand"></i></a></li>
+        <li><a @click="navigate" class="button" :class="{'is-loading':navigating}"><i class="fa-solid fa-fish"></i></a></li>
       </ul>
 
       <ul role="tablist"> <!-- bottom aligned tabs -->
         <li><a href="#table" role="tab"><i class="fa fa-table"></i></a></li>
         <li class="bottom"><a href="#polars" role="tab"><i class="fas fa-chart-area"></i></a></li>
-        <li class="bottom"><a href="#buoys" role="tab"><i class="fas fa-map-marked"></i></a></li>
+        <li class="bottom"><a href="#race" role="tab"><i class="fas fa-map-marked"></i></a></li>
         <li class="bottom"><a href="#boats" role="tab"><i class="fa fa-ship"></i></a></li>
         <li class="bottom"><a href="#settings" role="tab"><i class="fas fa-cog"></i></a></li>
       </ul>
@@ -122,6 +140,9 @@ function pan() {
       <div class="leaflet-sidebar-pane" id="home">
       </div>
       <div class="leaflet-sidebar-pane" id="polars">
+      </div>
+      <div class="leaflet-sidebar-pane" id="race">
+        <Race :layer="map" :raceId="props.race" />
       </div>
     </div>  
   </div>

@@ -5,7 +5,6 @@ import App from './App.vue'
 
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 import { WindService } from './lib/wind'
-import { PolarService } from './lib/polar'
 
 import 'bulma/css/bulma.css'
 
@@ -16,14 +15,16 @@ import 'leaflet-sidebar-v2/css/leaflet-sidebar.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
 
-import Route from './components/Route.vue'
+import Home from './components/Home.vue'
 import Polars from './components/Polars.vue'
 import Races from './components/Races.vue'
+import Route from './components/Route.vue'
 
 const routes = [
-  { path: '/', component: Route },
+  { path: '/', component: Home },
   { path: '/polars', component: Polars },
   { path: '/races', component: Races },
+  { name: 'navigate', path: '/:boat/:race', component: Route, props: true }
 ]
 
 const router = createRouter({
@@ -43,5 +44,3 @@ phtheirichthys.add_wind_provider().then(() => {
         console.log("Error getting status")    
     }
 })
-
-PolarService.add_polar()

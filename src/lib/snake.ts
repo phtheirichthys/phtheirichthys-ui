@@ -29,7 +29,7 @@ export module SnakeService {
             {"from":{"lat":0,"lon":0}, "start_time": new Date().toISOString(), "boat_settings": boat_settings, "status": status, "steps": []},
             {
                 max_duration: 48,
-                polar: "maxi_trimaran_x10percent",
+                polar: "19",
                 wind_provider: WindService.get_provider(),
                 boat_options: {
                     lt: false,

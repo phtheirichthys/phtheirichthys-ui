@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, Ref } from 'vue';
+import { onMounted, ref, Ref } from 'vue'
 import Navbar from './Navbar.vue'
-import { RaceService } from '../lib/races';
-import { Race } from '@phtheirichthys/phtheirichthys';
+import { RaceService } from '../lib/races'
+import { PolarService } from '../lib/polars'
+import { Race, Buoy as IBuoy } from '@phtheirichthys/phtheirichthys'
 import draggable from 'vuedraggable'
 
 import Buoy from './Buoy.vue'
+import L from 'leaflet';
 
 const races = ref(RaceService.list())
 
@@ -33,61 +35,57 @@ function importRace() {
 
 function select(r: Race) {
   race.value = r
+
+  console.log(race.value)
 }
-
-const buoys = computed(() => {
-  if(!race)  return
-
-  var buoys = []
-  buoys.push({id: "start", name: "start", type: "START", wrap: 0, latlons: [race.value.start]})
-
-  if (race.value.waypoints) {
-    race.value.waypoints.forEach(w => {
-      console.log(w)
-      var type = "WAYPOINT"
-      if (w.latlons.length > 1)
-        type = "DOOR"
-      if (w.name == "end")
-        type = "END"
-
-      let latlons = []
-      for(var l in w.latlons) {
-        let lat = w.latlons[l].lat
-        let lon = w.latlons[l].lon //+ (w.wrap ? w.wrap * 360 : 0)
-        latlons.push({lat: lat, lon: lon})
-      }
-      buoys.push({id: w.name, name: w.name, type: type, wrap: 0, latlons: latlons, toAvoid: w.toAvoid, radius: w.radius, custom: false, validated: false})
-    });
-  }
-
-  console.log(buoys)
-
-  return buoys
-})
-
 
 function reset() {
 
 }
 
 function add() {
-
-  console.log(race.value.waypoints)
-
-  race.value.waypoints.splice(race.value.waypoints.length - 1, 0, {
-    name: 'test',
-    latlons: [{"lat": 0, "lon": 0}]
+  race.value.buoys.push({
+    name: "",
+    type: "Waypoint",
+    destination: {"lat": 0, "lon": 0},
+    to_avoid: [],
+    validated: false,
   })
+}
 
-  console.log(race.value.waypoints)
+function save() {
+  edit.value = false
+  RaceService.save(race.value)
+}
 
+function remove(r: Race) {
+  RaceService.remove(race.value)
+  races.value.splice(races.value.indexOf(r), 1)
+  race.value = RaceService.newRace()
+}
+
+function validate(buoy: IBuoy) {
+  console.log("validate", buoy.validated)
+  buoy.validated = !buoy.validated
+  console.log("validate", buoy.validated)
 }
 
 function moveBuoy(event: any) {
   if (event.moved) {
     console.log({from: event.moved.oldIndex, to: event.moved.newIndex})
+
+    //race.value.buoys[event.moved.newIndex] = race.value.buoys.splice(event.moved.oldIndex, 1, race.value.buoys[event.moved.newIndex])[0]
   }
 }
+
+const layer = L.layerGroup()
+onMounted(() => {
+  const map = new L.Map("map", {zoomControl: true, attributionControl: false, worldCopyJump: false}).setView([0, 0], 4)
+  map.whenReady(() => {
+    L.tileLayer.provider('CartoDB.PositronNoLabels').addTo(map)
+    layer.addTo(map)
+  })
+})
 
 </script>
 
@@ -110,7 +108,13 @@ function moveBuoy(event: any) {
               <tbody>
                 <tr v-for="race in races" @click="select(race)">
                   <td>{{ race.name }}</td>
-                  <td></td>
+                  <td>
+                    <button class="button is-small is-white" @click="remove(race)">
+                      <span class="icon is-small">
+                        <i class="fas fa-trash"></i>
+                      </span>
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -150,7 +154,7 @@ function moveBuoy(event: any) {
                         <i class="fas fa-plus"></i>
                       </span>
                     </button>
-                    <button v-show="edit" class="button is-small is-white" @click="edit = false">
+                    <button v-show="edit" class="button is-small is-white" @click="save">
                       <span class="icon is-small">
                         <i class="fas fa-times"></i>
                       </span>
@@ -193,7 +197,7 @@ function moveBuoy(event: any) {
                           <div class="control is-expanded">
                             <div class="select is-fullwidth is-small">
                               <select v-model="race.boat">
-                                <!-- <option v-for="polar in polars" :key="polar.id" :value="polar.id">{{ polar.id }}</option> -->
+                                <option v-for="polar in PolarService.list()" :key="polar.id" :value="polar.id">{{ polar.label }}</option>
                               </select>
                             </div>
                           </div>
@@ -226,13 +230,15 @@ function moveBuoy(event: any) {
               </div>
             </div>
 
-            <!-- <draggable v-model="race.waypoints" draggable=".draggable" handle=".dragger" @change="moveBuoy"> -->
-              <Buoy :class="{draggable: edit && buoy.type !== 'START' && buoy.type !== 'END'}" v-for="(buoy, _index) in buoys" :buoy="buoy" :edit="edit"></Buoy>
+            <!-- <draggable v-model="race.buoys" draggable=".draggable"> -->
+              <!-- <template #item="{element}"> -->
+                <Buoy :class="{draggable: edit}" v-for="buoy in race.buoys" :buoy="buoy" :edit="edit" :layer="layer" @validate="validate(buoy)"></Buoy>
+              <!-- </template> -->
             <!-- </draggable> -->
 
           </div>
           <div class="column is-half">
-            carte
+            <div id="map"></div>
           </div>
         </div>
       </div>
@@ -263,105 +269,9 @@ function moveBuoy(event: any) {
   </div>
 </template>
 
-<style>
-.navbar-item.is-sun {
-  --bulma-navbar-dropdown-item-h:42deg;
-  --bulma-navbar-dropdown-item-s:100%;
-  --bulma-navbar-dropdown-item-color-l:53%;
+<style scoped>
+#map {
+  height: 100%;
+  width: 100%;
 }
-
-.navbar-item span.text {
-  color: var(--bulma-text-strong);
-  padding-left: 0.5em;
-}
-
-.navbar-item.is-active.is-sun {
-  --bulma-navbar-h:42deg;
-  --bulma-navbar-s:100%;
-  --bulma-navbar-item-color-l:53%;
-}
-
-.navbar-item.is-moon {
-  --bulma-navbar-dropdown-item-h:256deg;
-  --bulma-navbar-dropdown-item-s:89%;
-  --bulma-navbar-dropdown-item-color-l:65%;
-}
-
-.navbar-item.is-active.is-moon {
-  --bulma-navbar-h:256deg;
-  --bulma-navbar-s:89%;
-  --bulma-navbar-item-color-l:65%;
-}
-
-.navbar-item.is-system {
-  --bulma-navbar-dropdown-item-h:153deg;
-  --bulma-navbar-dropdown-item-s:53%;
-  --bulma-navbar-dropdown-item-color-l:53%;
-}
-
-.navbar-item.is-system {
-  --bulma-navbar-h:153deg;
-  --bulma-navbar-s:53%;
-  --bulma-navbar-item-color-l:53%;
-}
-
-.navbar-item.is-active {
-  background-color: hsla(var(--bulma-navbar-dropdown-item-h),var(--bulma-navbar-dropdown-item-s),var(--bulma-navbar-dropdown-item-color-l),.2);
-}
-/* 
-.bd-cycle {
-  --h:var(--bulma-sun-h);
-  --s:var(--bulma-sun-s);
-  --l:var(--bulma-sun-l);
-  border-radius:.5em;
-  color:hsl(var(--h),var(--s),var(--l));
-  display:flex;
-  flex-shrink:0;
-  height:2.5rem;
-  overflow:hidden;
-  position:relative;
-  transition-property:background-color;
-  width:2.5rem
-}
-.bd-cycle:hover {
-  background-color:hsla(var(--h),var(--s),var(--l),.1)
-}
-.bd-cycle.is-moon {
-  --h:var(--bulma-moon-h);
-  --s:var(--bulma-moon-s);
-  --l:var(--bulma-moon-l)
-}
-.bd-cycle.is-moon .bd-cycles {
-  transform:translate3d(0,-2.5rem,0)
-}
-.bd-cycles {
-  display:flex;
-  flex-direction:column;
-  flex-shrink:0;
-  height:5rem;
-  transition-duration:var(--bulma-duration);
-  transition-property:transform;
-  width:2.5rem
-}
-.bd-cycle-moon,
-.bd-cycle-sun {
-  align-items:center;
-  color:inherit;
-  display:flex;
-  flex-shrink:0;
-  height:2.5rem;
-  justify-content:center;
-  transition:none;
-  width:2.5rem
-}
-.bd-cycle-moon.is-active,
-.bd-cycle-sun.is-active {
-  opacity:1
-}
-.bd-cycle-sun.is-active {
-  color:var(--sun)
-}
-.bd-cycle-moon.is-active {
-  color:var(--moon)
-} */
 </style>
