@@ -41,14 +41,14 @@ export module PolarService {
     }
 
     export function save(polar: Polar) {
-        polars.set(polar._id, polar)
+        polars.set(polar._id.toString(), polar)
 
         Data.POLARS.setItem(polars)
     }
 
-    export function remove(polar: Polar) {
-        polars.delete(polar._id)
-        console.log("remove", polar._id, polars)
+    export function remove(id: string) {
+        polars.delete(id)
+        console.log("remove", id, polars)
 
         Data.POLARS.setItem(polars)
     }

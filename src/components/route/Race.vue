@@ -19,7 +19,7 @@ layer.addTo(props.layer)
 </script>
 
 <template>
-    <Buoy v-for="(buoy, index) in race.buoys" :key="index" :layer="layer" :buoy="buoy" :edit="false"></Buoy>
+    <Buoy v-if="race" v-for="(buoy, index) in race.buoys" :key="index" :layer="layer" :buoy="buoy" :edit="false"></Buoy>
 </template>
 
 <style>

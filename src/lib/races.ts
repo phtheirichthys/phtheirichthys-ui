@@ -49,7 +49,7 @@ export module RaceService {
         Data.RACES.setItem(races)
     }
 
-    export function get(id: string): Race {
-        return races.get(id)
+    export function get(id: string): Race | null {
+        return races.get(id) || null
     }
 }

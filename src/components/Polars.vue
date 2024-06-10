@@ -16,7 +16,7 @@ function select(id: number) {
 }
 
 function remove(id: number) {
-  PolarService.remove(id)
+  PolarService.remove(id.toString())
   polars.value = PolarService.list()
   if (polarId.value === id) {
     polarId.value = null

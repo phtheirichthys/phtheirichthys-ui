@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Buoy, Coords } from '@phtheirichthys/phtheirichthys'
+import { Buoy, Coords, Door } from '@phtheirichthys/phtheirichthys'
 import { computed, onMounted, ref, watch } from 'vue'
 import { Utils } from '../lib/utils'
 import L from 'leaflet'
@@ -46,9 +46,11 @@ function coord(coords: Coords) {
 }
 
 function reverse() {
-  let starboard = buoy.value.starboard
-  buoy.value.starboard = buoy.value.port
-  buoy.value.port = starboard
+  let door = buoy.value as Door
+  
+  let starboard = door.starboard
+  door.starboard = door.port
+  door.port = starboard
 }
 
 function changeType() {
@@ -187,17 +189,18 @@ function drawBuoy() {
     var m1 = L.marker([buoy.value.port.lat, buoy.value.port.lon + wrap], {icon: markerIconPort, draggable: props.edit, zIndexOffset: 5000})
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
-        buoy.value.port = {lat: latlng.lat, lon: latlng.lng}
-        line.setLatLngs([[buoy.value.port.lat, buoy.value.port.lon + wrap], [buoy.value.starboard.lat, buoy.value.starboard.lon + wrap]])
+        let door = buoy.value as Door
+        door.port = {lat: latlng.lat, lon: latlng.lng}
+        line.setLatLngs([[door.port.lat, door.port.lon + wrap], [door.starboard.lat, door.starboard.lon + wrap]])
       }).addTo(props.layer)
     markers.value.push(m1)
 
     var m2 = L.marker([buoy.value.starboard.lat, buoy.value.starboard.lon + wrap], {icon: markerIconStarboard, draggable: props.edit, zIndexOffset: 5000})
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
-
-        buoy.value.starboard = {lat: latlng.lat, lon: latlng.lng}
-        line.setLatLngs([[buoy.value.port.lat, buoy.value.port.lon + wrap], [buoy.value.starboard.lat, buoy.value.starboard.lon + wrap]])
+        let door = buoy.value as Door
+        door.starboard = {lat: latlng.lat, lon: latlng.lng}
+        line.setLatLngs([[door.port.lat, door.port.lon + wrap], [door.starboard.lat, door.starboard.lon + wrap]])
       }).addTo(props.layer)
     markers.value.push(m2)
   }  

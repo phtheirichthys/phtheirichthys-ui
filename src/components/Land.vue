@@ -35,7 +35,9 @@ onMounted(() => {
 
             try {
                 console.log("Draw land", "vr", coords.x, coords.y, coords.z, size.x, size.y)
-                phtheirichthys.draw_land("vr", ctx, coords.x, coords.y, coords.z, size.x, size.y)
+                if (ctx) {
+                    phtheirichthys.draw_land("vr", ctx, coords.x, coords.y, coords.z, size.x, size.y)
+                }
             } catch (e) {
                 console.error("Error drawing land canvas", e)
             }
