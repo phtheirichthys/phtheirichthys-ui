@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Buoy, Coords, Door } from '@phtheirichthys/phtheirichthys'
+import { Buoy, Coords } from '@phtheirichthys/phtheirichthys'
 import { computed, onMounted, ref, watch } from 'vue'
 import { Utils } from '../lib/utils'
 import L from 'leaflet'
@@ -51,7 +51,7 @@ function reverse() {
   buoy.value.port = starboard
 }
 
-function changeType(event: Event) {
+function changeType() {
   console.log(buoy.value.type, "->", type.value)
   switch (buoy.value.type) {
     case "Door":
@@ -146,10 +146,7 @@ function redraw() {
 }
 
 function drawBuoy() {
-  var startMarkerIcon = L.ExtraMarkers.icon({shape: 'circle', markerColor: 'cyan' , prefix: 'fa'})
-  var endMarkerIcon = L.ExtraMarkers.icon({shape: 'circle', markerColor: 'orange' , prefix: 'fa'});
-  var endMarkerIconBabord = L.ExtraMarkers.icon({shape: 'circle', markerColor: 'red' , prefix: 'fa'});
-  var endMarkerIconTribord = L.ExtraMarkers.icon({shape: 'circle', markerColor: 'green' , prefix: 'fa'});
+  //var startMarkerIcon = L.ExtraMarkers.icon({shape: 'circle', markerColor: 'cyan' , prefix: 'fa'})
   var markerIcon = L.ExtraMarkers.icon({icon: 'fa-number', number: buoy.value.name, shape: 'penta', markerColor: buoy.value.validated === true ? 'cyan' : 'yellow'});
   var markerIconPort = L.ExtraMarkers.icon({icon: 'fa-number', number: buoy.value.name, shape: 'penta', markerColor: buoy.value.validated === true ? 'cyan' : 'red'});
   var markerIconStarboard = L.ExtraMarkers.icon({icon: 'fa-number', number: buoy.value.name, shape: 'penta', markerColor: buoy.value.validated === true ? 'cyan' : 'green'});

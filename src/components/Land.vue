@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import L, { LatLng, setOptions } from 'leaflet'
+import L from 'leaflet'
 import { onMounted } from 'vue';
 
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys'

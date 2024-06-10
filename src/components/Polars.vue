@@ -3,7 +3,6 @@ import { ref, Ref } from 'vue';
 import { PolarService } from '../lib/polars';
 
 import Navbar from './Navbar.vue'
-import { Polar } from '@phtheirichthys/phtheirichthys';
 
 const polars = ref(PolarService.list())
 
