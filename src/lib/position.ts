@@ -1,8 +1,7 @@
 import L from "leaflet";
-import { Speed } from "./utils";
-import { Wind } from "./wind";
-import { Coords, Heading, Sail } from "@phtheirichthys/phtheirichthys";
+import { BoatSettings, Coords } from "@phtheirichthys/phtheirichthys";
 import { BoatOptions } from "@phtheirichthys/phtheirichthys";
+import { BoatStatus } from "@phtheirichthys/phtheirichthys/phtheirichthys";
 
 export class Point implements Coords {
   lat: number;
@@ -26,45 +25,38 @@ export type BoatType = "normal"
 
 export class BoatConfig {
   type: BoatType
-  position!: Point
-  settings!: BoatSettings
+  position: Point
+  settings: BoatSettings
   options!: BoatOptions
-  status!: BoatStatus
+  status: BoatStatus
 
   constructor() {
     this.type = "normal"
     this.position = new Point(0, 0)
-    this.settings = new BoatSettings()
-    this.status = new BoatStatus()
-  }
-}
-
-export class BoatSettings {
-  heading: Heading
-  sail: Sail
-
-  constructor() {
-    this.heading = {heading: 0}
-    this.sail = {index: 0, id: 1, auto: false}
-  }
-}
-
-export class BoatStatus {
-  aground: boolean
-  boat_speed: Speed
-  wind: Wind
-  foil: number
-  boost: number
-  //vmgs: TODO
-  //penalties: TODO
-  stamina: number
-
-  constructor() {
-    this.aground = false
-    this.boat_speed = 0
-    this.wind = new Wind(0, 0)
-    this.foil = 0
-    this.boost = 0
-    this.stamina = 0
+    this.settings = {
+      heading: { heading: 0 },
+      sail: {index: 0, id: 1, auto: false}
+    }
+    this.options = {
+      lt: false,
+      gt: false,
+      code0: false,
+      foil: false,
+      hull: false,
+      winch: false,
+      stamina: false
+    }
+    this.status = {
+      aground: false,
+      boat_speed: 10,
+      wind: { direction: 0, speed: 15 },
+      foil: 0,
+      boost: 0,
+      best_ratio: 0,
+      ratio: 0,
+      vmgs: undefined,
+      penalties: { gybe: undefined, sail_change: undefined, tack: undefined },
+      stamina: 0,
+    }
   }
 }

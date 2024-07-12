@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import L from 'leaflet'
-import { onMounted } from 'vue'
+import { SnakeResult } from '@phtheirichthys/phtheirichthys';
 import { Point } from '../../lib/position'
-import { SnakeService } from '../../lib/snake'
+import { PhtheitichthysService } from '../../lib/phtheirichthys';
+import { onMounted } from 'vue'
+import L from 'leaflet'
 
 const props = defineProps<{
   map: L.Map,
@@ -12,8 +13,6 @@ const props = defineProps<{
 const layer = new L.LayerGroup()
 //const markerLayer = L.layerGroup().addTo(layer)
 const linesLayer = L.layerGroup().addTo(layer)
-
-//var progs: Array<any> = []
 
 props.layerControl.addOverlay(layer, "<i class='fa fa-route'></i> Snake")
 
@@ -38,12 +37,9 @@ onMounted(() => {
     let b = Math.round(bearingTo(position, Point.fromLatLng(latlng)))
     if(b == 360) b = 0
 
-    try {
-      let snake_result = SnakeService.eval_snake({heading: b})
-
+    PhtheitichthysService.eval_snake({heading: b}).then((snake_result) => {
       display(snake_result)
-      console.log("Snake", snake_result)
-    } catch {}
+    })
 
   })
 })
@@ -81,14 +77,14 @@ function bearingTo(from: Point, to: Point) {
   return wrap360(b)
 }
 
-function display(headingLine: Array<Array<number | Point>>) {
+function display(snake_result: SnakeResult) {
   linesLayer.clearLayers()
-  displayLine(headingLine, false)
+  displayLine(snake_result, false)
 }
 
-function displayLine(line: Array<Array<number | Point>>, isTwa: boolean) {
+function displayLine(snake_result: SnakeResult, isTwa: boolean) {
   var path = [];
-  const boatLine = line
+  const boatLine = snake_result.positions
 
   var color = "#3bdbd5"
   var icon = new L.DivIcon({
@@ -103,7 +99,6 @@ function displayLine(line: Array<Array<number | Point>>, isTwa: boolean) {
     })
   }
 
-  console.log(boatLine)
   for(var wl of boatLine) {
     const pt = wl[1] as Point
     L.marker([pt.lat, pt.lon], {icon: icon, zIndexOffset: isTwa ? 75 : 50})
@@ -113,6 +108,9 @@ function displayLine(line: Array<Array<number | Point>>, isTwa: boolean) {
   L.polyline(path, {color: color, weight: 1, smoothFactor: 2, lineJoin: 'round', opacity: 0.9}).addTo(linesLayer);
 }
 </script>
+
+<template>
+</template>
 
 <style>
 .leaflet-div-icon.leaflet-bearingline-icon.leaflet-touch-icon {

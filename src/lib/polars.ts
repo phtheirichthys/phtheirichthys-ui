@@ -1,5 +1,6 @@
-import { Polar, add_polar } from "@phtheirichthys/phtheirichthys";
+import { Polar } from "@phtheirichthys/phtheirichthys";
 import { Data } from "./data";
+import { PhtheitichthysService } from "./phtheirichthys";
 
 interface PolarList {
     id: number,
@@ -7,18 +8,23 @@ interface PolarList {
 }
 
 export module PolarService {
-    let polars: Map<string, Polar> = Data.POLARS.getItem() ?? new Map<string, Polar>()
+    let polars: Map<string, Polar>;
 
-    polars.forEach((polar) => {
-        add_polar(polar._id.toString(), polar)
-    })
+    export function init() {
+        polars = Data.POLARS.getItem() ?? new Map<string, Polar>()
 
-    function addRace(polar: Polar) {
+        polars.forEach((polar) => {
+            PhtheitichthysService.add_polar(polar._id.toString(), polar)
+        })    
+    }
+
+    function add(polar: Polar) {
         let id = polar._id.toString()
         console.log(polars)
         polars.set(id, polar)
-        console.log(polars)
         Data.POLARS.setItem(polars)
+
+        PhtheitichthysService.add_polar(id, polar)
     }
 
     export function list(): Array<PolarList> {
@@ -37,7 +43,7 @@ export module PolarService {
         } else {
             polar = JSON.parse(polarString) as Polar
         }
-        addRace(polar)
+        add(polar)
     }
 
     export function save(polar: Polar) {

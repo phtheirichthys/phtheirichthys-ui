@@ -3,9 +3,6 @@ import { createWebHashHistory, createRouter } from 'vue-router'
 
 import App from './App.vue'
 
-import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
-import { WindService } from './lib/wind'
-
 import 'bulma/css/bulma.css'
 
 import 'leaflet/dist/leaflet.css'
@@ -35,12 +32,3 @@ const router = createRouter({
 createApp(App)
   .use(router)
   .mount('#app')
-
-phtheirichthys.add_wind_provider().then(() => {
-    try {
-        let status = WindService.status()
-        console.log(status)
-    } catch (e) {
-        console.log("Error getting status")    
-    }
-})

@@ -8,6 +8,11 @@ export default defineConfig({
     vue(),
     wasm()
   ],
+  worker: {
+    plugins: [
+      wasm()
+    ],
+    },
   esbuild: {
     supported: {
       'top-level-await': true //browsers can handle top-level-await features

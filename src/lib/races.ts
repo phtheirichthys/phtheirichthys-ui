@@ -7,7 +7,7 @@ export module RaceService {
     function addRace(race: Race) {
         let id = race.id.toString()
         if(race.leg) {
-            id += "#" + race.leg
+            id += "-" + race.leg
         }
         console.log(races)
         races.set(id, race)
@@ -50,6 +50,9 @@ export module RaceService {
     }
 
     export function get(id: string): Race | null {
+        console.log(id, races)
+
+
         return races.get(id) || null
     }
 }

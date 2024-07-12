@@ -8,9 +8,10 @@ import Snake from './Snake.vue'
 import Race from './Race.vue'
 import Land from '../Land.vue'
 
-import { ref, onMounted, Ref } from 'vue'
-import { Wind, WindService } from '../../lib/wind';
+import { ref, onMounted, Ref, toRaw } from 'vue'
+import { Wind } from '../../lib/wind';
 import { BoatConfig, Point } from '../../lib/position';
+import { PhtheitichthysService } from '../../lib/phtheirichthys'
 
 
 const props = defineProps<{
@@ -26,6 +27,7 @@ var legend = ref(L.DomUtil.create("div"))
 
 const map = new L.Map("map", {zoomControl: true, worldCopyJump: false}).setView([0, 0], 4)
 const layerControl = L.control.layers()
+const landLayerControl = L.layerGroup()
 
 var wind: Ref<Wind | null> = ref(null)
 
@@ -37,6 +39,8 @@ onMounted(() => {
     var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png')
     layerControl.addBaseLayer(osm, "OSM")
     layerControl.addTo(map)
+
+    layerControl.addOverlay(landLayerControl, "<i class='fas fa-globe-europe'></i> Land");
 
     let VelocityControl = L.Control.extend({
       onAdd: function() {
@@ -66,7 +70,9 @@ onMounted(() => {
 
 function onMouseMove(point: Point) {
   try {
-    wind.value = WindService.get_wind(point)
+    PhtheitichthysService.get_wind(point).then((w) => {
+      wind.value = w
+    })
     displayLegend()
   } catch (e) {
 
@@ -106,7 +112,7 @@ function pan() {
 
 function navigate() {
   navigating.value = true
-  alert("navigate !!!")
+  PhtheitichthysService.navigate(props.race, toRaw(boat.value))
 }
 </script>
 
@@ -114,7 +120,7 @@ function navigate() {
   <Boat :boat="boat" :layer="map" />
   <Graticule :layer="map" />
   <Snake :map="map" :layer-control="layerControl" />
-  <Land :layer="map" />
+  <Land :layer="landLayerControl" />
 
   <div id="sidebar" class="leaflet-sidebar collapsed">
     <!-- Nav tabs -->
