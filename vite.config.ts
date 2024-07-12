@@ -9,6 +9,7 @@ export default defineConfig({
     wasm()
   ],
   worker: {
+    format: 'es',
     plugins: [
       wasm()
     ],
