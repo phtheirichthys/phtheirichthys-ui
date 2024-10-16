@@ -15,7 +15,7 @@ onBeforeMount(() => {
     phtheirichthys.init()
 
     PolarService.init()
-  }, 1000)
+  }, 10000)
 })
 
 onBeforeUnmount(() => {
