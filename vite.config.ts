@@ -6,14 +6,14 @@ import wasm from "vite-plugin-wasm";
 export default defineConfig({
   plugins: [
     vue(),
-    wasm()
+    wasm(),
   ],
   worker: {
     format: 'es',
-    plugins: [
-      wasm()
+    plugins: () => [
+      wasm(),
     ],
-    },
+  },
   esbuild: {
     supported: {
       'top-level-await': true //browsers can handle top-level-await features

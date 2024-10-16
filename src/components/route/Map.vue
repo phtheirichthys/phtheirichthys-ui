@@ -7,17 +7,21 @@ import Graticule from './Graticule.vue'
 import Snake from './Snake.vue'
 import Race from './Race.vue'
 import Land from '../Land.vue'
+import Route from './Route.vue'
 
 import { ref, onMounted, Ref, toRaw } from 'vue'
 import { Wind } from '../../lib/wind';
 import { BoatConfig, Point } from '../../lib/position';
 import { PhtheitichthysService } from '../../lib/phtheirichthys'
+import { RouteResult } from '@phtheirichthys/phtheirichthys'
 
 
 const props = defineProps<{
   boat: string,
   race: string,
 }>()
+
+const routeResult: Ref<RouteResult | null> = ref(null)
 
 const boat: Ref<BoatConfig> = ref(new BoatConfig())
 
@@ -112,8 +116,18 @@ function pan() {
 
 function navigate() {
   navigating.value = true
-  PhtheitichthysService.navigate(props.race, toRaw(boat.value))
+  PhtheitichthysService.navigate(props.race, toRaw(boat.value)).then((res) => {
+    console.log(routeResult)
+    routeResult.value = res
+  }).finally(() => {
+    navigating.value = false
+  })
 }
+
+function test_webgpu() {
+  PhtheitichthysService.test_webgpu()
+}
+
 </script>
 
 <template>
@@ -121,6 +135,7 @@ function navigate() {
   <Graticule :layer="map" />
   <Snake :map="map" :layer-control="layerControl" />
   <Land :layer="landLayerControl" />
+  <Route v-if="routeResult" :layer="map" :route="routeResult" />
 
   <div id="sidebar" class="leaflet-sidebar collapsed">
     <!-- Nav tabs -->
@@ -130,6 +145,7 @@ function navigate() {
         <li><a role="tab" @click="center" @dblclick.stop="centerAndZoom"><i class="fa fa-dot-circle"></i></a></li>
         <li><a role="tab" @click="pan"><i class="fa fa-expand"></i></a></li>
         <li><a @click="navigate" class="button" :class="{'is-loading':navigating}"><i class="fa-solid fa-fish"></i></a></li>
+        <li><a @click="test_webgpu" class="button">WebGPU</a></li>
       </ul>
 
       <ul role="tablist"> <!-- bottom aligned tabs -->

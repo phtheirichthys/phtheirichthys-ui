@@ -1,3 +1,4 @@
+import VConsole from 'vconsole'
 import { createApp } from 'vue'
 import { createWebHashHistory, createRouter } from 'vue-router'
 
@@ -16,6 +17,8 @@ import Home from './components/Home.vue'
 import Polars from './components/Polars.vue'
 import Races from './components/Races.vue'
 import Route from './components/Route.vue'
+
+new VConsole()
 
 const routes = [
   { path: '/', component: Home },

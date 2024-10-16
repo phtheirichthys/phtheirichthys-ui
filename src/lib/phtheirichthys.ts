@@ -21,11 +21,10 @@ export module PhtheitichthysService {
     const worker = new MyWorker()
     console.log("Start SharedWorker")
     worker.onerror = (error) => {
-        console.error("On Error", error)
+        console.error(error)
     }
 
     export function start() {
-        console.log("Start Port", worker, worker.port)
         worker.port.onmessage = (message) => {    
             const { type, uuid, data } = message.data
     
@@ -43,6 +42,7 @@ export module PhtheitichthysService {
         worker.port.onmessageerror = (message) => {
             console.error("On Message Error", message)
         }
+        console.log("Start Port", worker, worker.port)
 
         worker.port.start()
 
@@ -55,6 +55,7 @@ export module PhtheitichthysService {
     }
 
     export function add_wind_provider() {
+        console.log("add wind provider")
         worker.port.postMessage({ type: "add-wind-provider" })
     }
 
@@ -80,6 +81,7 @@ export module PhtheitichthysService {
     }
 
     export function add_land_provider() {
+        console.log("add land provider")
         worker.port.postMessage({ type: "add-land-provider" })
     }
 
@@ -153,8 +155,12 @@ export module PhtheitichthysService {
         worker.port.postMessage({ type: "add-polar", name, polar })
     }
 
-    export function navigate(race_id: string, boat_config: BoatConfig) {
-        let race: phtheirichthys.Race = RaceService.get(race_id)!;
+    export function test_webgpu() {
+        worker.port.postMessage({ type: "test-webgpu" })
+    }
+
+    export async function navigate(race_id: string, boat_config: BoatConfig) {
+        let race: phtheirichthys.Race = RaceService.get("snowflake-1")!;
 
         let request = {
             from: { lat: 0, lon: 0 },
@@ -163,14 +169,27 @@ export module PhtheitichthysService {
             status: boat_config.status
         }
 
-        console.log(WindService.get_provider(), "19", race, boat_config.options, request)
+        return new Promise<phtheirichthys.RouteResult>((resolve) => {
+            const request_uuid = uuidv4()
+            const handler = (message: MessageEvent<any>) => {
+                const { uuid, data } = message.data
 
-        worker.port.postMessage({ type: "navigate",
-            wind_provider: WindService.get_provider(),
-            polar_id: "19",
-            race,
-            boat_options: boat_config.options,
-            request
+                if (uuid === request_uuid) {
+                    worker.port.removeEventListener("message", handler)
+                    resolve(data)
+                }
+            }
+            worker.port.addEventListener("message", handler)
+
+
+            worker.port.postMessage({ type: "navigate", uuid: request_uuid,
+                wind_provider: WindService.get_provider(),
+                polar_id: "19",
+                race,
+                boat_options: boat_config.options,
+                request
+            })
         })
+
     }
 }

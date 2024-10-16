@@ -10,8 +10,9 @@ export type EventData = ({ type: "add-wind-provider" })
     | ({ type: "add-land-provider" })
     | ({ type: "draw-land" } & { canvas: OffscreenCanvas, provider: string, coords: { x: number, y: number, z: number }, size: { width: number, height: number } })
     | ({ type: "eval-snake" } & { uuid: string, route_request: RouteRequest, params: SnakeParams, heading: Heading })
-    | ({ type: "navigate" } & { wind_provider: string, polar_id: string, race: Race, boat_options: BoatOptions, request: RouteRequest } )
+    | ({ type: "navigate" } & { uuid: string, wind_provider: string, polar_id: string, race: Race, boat_options: BoatOptions, request: RouteRequest } )
     | ({ type: "add-polar" } & { name: string, polar: Polar })
+    | ({ type: "test-webgpu" })
 
 console.log("Worker", "Declare", new Date().toISOString())
 
@@ -64,11 +65,15 @@ self.onconnect = (event) => {
                 phtheirichthys.add_polar(data.name, data.polar)
                 break
             case "navigate":
+                console.log("Worker", "Navigation", data)
                 phtheirichthys.navigate(data.wind_provider, data.polar_id, data.race, data.boat_options, data.request).then((res) => {
-                    port.postMessage({type: "navigation", data: res})
+                    port.postMessage({type: "navigation", uuid: data.uuid, data: res})
                 }).catch((e) => {
                     console.error("Error evaluating snake", e)
                 })
+                break
+            case "test-webgpu":
+                //phtheirichthys.test_webgpu()
                 break
         }
     }
