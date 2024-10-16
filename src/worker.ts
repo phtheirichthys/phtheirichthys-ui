@@ -77,4 +77,6 @@ self.onconnect = async (event) => {
                 break
         }
     }
+
+    port.start()
 }
