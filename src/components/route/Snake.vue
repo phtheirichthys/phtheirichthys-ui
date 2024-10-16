@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { SnakeResult } from '@phtheirichthys/phtheirichthys';
 import { Point } from '../../lib/position'
-import { PhtheitichthysService } from '../../lib/phtheirichthys';
+import { usePhtheirichthysStore } from '../../stores/phtheirichthys'
 import { onMounted } from 'vue'
 import L from 'leaflet'
 
@@ -9,6 +9,8 @@ const props = defineProps<{
   map: L.Map,
   layerControl: L.Control.Layers
 }>()
+
+const phtheirichthys = usePhtheirichthysStore()
 
 const layer = new L.LayerGroup()
 //const markerLayer = L.layerGroup().addTo(layer)
@@ -37,7 +39,7 @@ onMounted(() => {
     let b = Math.round(bearingTo(position, Point.fromLatLng(latlng)))
     if(b == 360) b = 0
 
-    PhtheitichthysService.eval_snake({heading: b}).then((snake_result) => {
+    phtheirichthys.eval_snake({heading: b}).then((snake_result) => {
       display(snake_result)
     })
 

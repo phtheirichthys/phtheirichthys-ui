@@ -2,15 +2,16 @@
 import L from 'leaflet'
 import { onMounted } from 'vue';
 
-import { PhtheitichthysService } from '../lib/phtheirichthys';
+import { usePhtheirichthysStore } from '../stores/phtheirichthys'
 
 const props = defineProps<{
     layer: L.Map | L.LayerGroup,
 }>()
 
-PhtheitichthysService.add_land_provider()
+const phtheirichthys = usePhtheirichthysStore()
 
 onMounted(() => {
+    phtheirichthys.add_land_provider()
     let LandLayer = L.GridLayer.extend({
         options: {
             zIndex: 10
@@ -32,7 +33,7 @@ onMounted(() => {
 
             // draw something asynchronously and pass the tile to the done() callback
             try {
-                PhtheitichthysService.draw_land(offscreen, coords.x, coords.y, coords.z, size.x, size.y)
+                phtheirichthys.draw_land(offscreen, coords.x, coords.y, coords.z, size.x, size.y)
             } catch (e) {
                 console.error("Error drawing land canvas", e)
             }

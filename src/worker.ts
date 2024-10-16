@@ -16,7 +16,7 @@ export type EventData = ({ type: "add-wind-provider" })
 
 console.log("Worker", "Declare", new Date().toISOString())
 
-self.onconnect = (event) => {
+self.onconnect = async (event) => {
     console.log("Worker", "Connect", event.ports)
 
     const port = event.ports[0];
@@ -73,7 +73,7 @@ self.onconnect = (event) => {
                 })
                 break
             case "test-webgpu":
-                //phtheirichthys.test_webgpu()
+                phtheirichthys.test_webgpu()
                 break
         }
     }

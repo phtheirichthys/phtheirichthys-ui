@@ -12,14 +12,16 @@ import Route from './Route.vue'
 import { ref, onMounted, Ref, toRaw } from 'vue'
 import { Wind } from '../../lib/wind';
 import { BoatConfig, Point } from '../../lib/position';
-import { PhtheitichthysService } from '../../lib/phtheirichthys'
 import { RouteResult } from '@phtheirichthys/phtheirichthys'
 
+import { usePhtheirichthysStore } from '../../stores/phtheirichthys'
 
 const props = defineProps<{
   boat: string,
   race: string,
 }>()
+
+const phtheirichthys = usePhtheirichthysStore()
 
 const routeResult: Ref<RouteResult | null> = ref(null)
 
@@ -74,7 +76,7 @@ onMounted(() => {
 
 function onMouseMove(point: Point) {
   try {
-    PhtheitichthysService.get_wind(point).then((w) => {
+    phtheirichthys.get_wind(point).then((w) => {
       wind.value = w
     })
     displayLegend()
@@ -116,7 +118,7 @@ function pan() {
 
 function navigate() {
   navigating.value = true
-  PhtheitichthysService.navigate(props.race, toRaw(boat.value)).then((res) => {
+  phtheirichthys.navigate(props.race, toRaw(boat.value)).then((res) => {
     console.log(routeResult)
     routeResult.value = res
   }).finally(() => {
@@ -125,7 +127,7 @@ function navigate() {
 }
 
 function test_webgpu() {
-  PhtheitichthysService.test_webgpu()
+  phtheirichthys.test_webgpu()
 }
 
 </script>

@@ -1,3 +1,4 @@
+import { createPinia } from 'pinia'
 import VConsole from 'vconsole'
 import { createApp } from 'vue'
 import { createWebHashHistory, createRouter } from 'vue-router'
@@ -13,12 +14,17 @@ import 'leaflet-sidebar-v2/css/leaflet-sidebar.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
 
+const pinia = createPinia()
+
+const app = createApp(App)
+app.use(pinia)
+
+new VConsole()
+
 import Home from './components/Home.vue'
 import Polars from './components/Polars.vue'
 import Races from './components/Races.vue'
 import Route from './components/Route.vue'
-
-new VConsole()
 
 const routes = [
   { path: '/', component: Home },
@@ -32,6 +38,5 @@ const router = createRouter({
   routes,
 })
 
-createApp(App)
-  .use(router)
-  .mount('#app')
+app.use(router)
+app.mount('#app')
