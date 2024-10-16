@@ -45,8 +45,6 @@ export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
       }
       console.log("Start Port", worker, worker.port)
   
-      worker.port.start()
-  
       add_wind_provider() 
     }, 5000)
   }
