@@ -4,7 +4,7 @@ import { BoatConfig, Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 
-import MyWorker from '../worker?sharedworker&inline'
+//import MyWorker from '../worker?sharedworker&inline'
 import { Wind, WindService } from '../lib/wind';
 import { RaceService } from '../lib/races';
 
@@ -17,7 +17,7 @@ type Events = {
 
 export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
 
-  let worker = new MyWorker()
+  let worker = new SharedWorker(new URL('../worker', import.meta.url), {type: 'module'})
 
   function init() {
     console.log("new my worker")
