@@ -160,7 +160,7 @@ export module PhtheitichthysService {
     }
 
     export async function navigate(race_id: string, boat_config: BoatConfig) {
-        let race: phtheirichthys.Race = RaceService.get("snowflake-1")!;
+        let race: phtheirichthys.Race = RaceService.get(race_id)!;
 
         let request = {
             from: { lat: 0, lon: 0 },
