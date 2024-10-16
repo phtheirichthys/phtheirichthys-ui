@@ -58,9 +58,9 @@ export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
     worker.port.postMessage({ type: "add-wind-provider" })
   }
 
-  function get_wind_provider_status(provider: string) {
-    worker.port.postMessage({ type: "get-wind-provider-status", provider })
-  }
+  // function get_wind_provider_status(provider: string) {
+  //   worker.port.postMessage({ type: "get-wind-provider-status", provider })
+  // }
 
   async function get_wind(point: Point) {
     return new Promise<phtheirichthys.Wind>((resolve, reject) => {
