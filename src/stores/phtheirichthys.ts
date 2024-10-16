@@ -22,31 +22,33 @@ export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
   function init() {
     console.log("new my worker")
     worker = new MyWorker()
-    worker.onerror = (error) => {
-      console.error(error)
-    }
-    worker.port.onmessage = (message) => {
-      const { type, uuid, data } = message.data
-  
-      console.debug("Worker", "on message", type, uuid, data)
-  
-      switch (type) {
-        case "wind-provider-status":
-          emitter.emit(type, data)
-          break
-        case "navigation":
-          emitter.emit(type, data)
-          break
+    setTimeout(() => {
+      worker.onerror = (error) => {
+        console.error(error)
       }
-    }
-    worker.port.onmessageerror = (message) => {
-      console.error("On Message Error", message)
-    }
-    console.log("Start Port", worker, worker.port)
+      worker.port.onmessage = (message) => {
+        const { type, uuid, data } = message.data
   
-    worker.port.start()
+        console.debug("Worker", "on message", type, uuid, data)
   
-    add_wind_provider()  
+        switch (type) {
+          case "wind-provider-status":
+            emitter.emit(type, data)
+            break
+          case "navigation":
+            emitter.emit(type, data)
+            break
+        }
+      }
+      worker.port.onmessageerror = (message) => {
+        console.error("On Message Error", message)
+      }
+      console.log("Start Port", worker, worker.port)
+  
+      worker.port.start()
+  
+      add_wind_provider() 
+    }, 5000)
   }
 
   function terminate() {
