@@ -20,9 +20,6 @@ export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
   let worker = new SharedWorker(new URL('../worker', import.meta.url), {type: 'module'})
 
   function init() {
-    console.log("new my worker")
-    worker = new MyWorker()
-    setTimeout(() => {
       worker.onerror = (error) => {
         console.error(error)
       }
@@ -45,8 +42,7 @@ export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
       }
       console.log("Start Port", worker, worker.port)
   
-      add_wind_provider() 
-    }, 5000)
+      add_wind_provider()
   }
 
   function terminate() {
