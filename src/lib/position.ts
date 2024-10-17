@@ -1,4 +1,4 @@
-import L from "leaflet";
+// import L from "leaflet";
 import { BoatSettings, Coords } from "@phtheirichthys/phtheirichthys";
 import { BoatOptions } from "@phtheirichthys/phtheirichthys";
 import { BoatStatus } from "@phtheirichthys/phtheirichthys/phtheirichthys";
@@ -12,13 +12,18 @@ export class Point implements Coords {
     this.lon = lon;
   }
 
-  static fromLatLng(latLng: L.LatLng): Point {
+  static fromLatLng(latLng: LatLng): Point {
     return new Point(latLng.lat, latLng.lng)
   }
   
-  toLatLng(): L.LatLng {
-    return new L.LatLng(this.lat, this.lon)
+  toLatLng(): LatLng {
+    return {lat: this.lat, lng: this.lon}
   }
+}
+
+export interface LatLng {
+  lat: number;
+  lng: number;
 }
 
 export type BoatType = "normal"

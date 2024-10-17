@@ -4,7 +4,7 @@ import { BoatConfig, Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 
-//import MyWorker from '../worker?sharedworker&inline'
+import MyWorker from '../worker?sharedworker&inline'
 import { Wind, WindService } from '../lib/wind';
 import { RaceService } from '../lib/races';
 
@@ -17,32 +17,32 @@ type Events = {
 
 export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
 
-  let worker = new SharedWorker(new URL('../worker', import.meta.url), {type: 'module'})
+  let worker = new MyWorker()
 
   function init() {
-      worker.onerror = (error) => {
-        console.error(error)
+    console.log("init")
+    worker.onerror = (error) => {
+      console.log("error", error)
+    }
+    worker.port.onmessage = (message) => {
+      const { type, uuid, data } = message.data
+
+      console.debug("Worker", "on message", type, uuid, data)
+
+      switch (type) {
+        case "wind-provider-status":
+          emitter.emit(type, data)
+          break
+        case "navigation":
+          emitter.emit(type, data)
+          break
       }
-      worker.port.onmessage = (message) => {
-        const { type, uuid, data } = message.data
-  
-        console.debug("Worker", "on message", type, uuid, data)
-  
-        switch (type) {
-          case "wind-provider-status":
-            emitter.emit(type, data)
-            break
-          case "navigation":
-            emitter.emit(type, data)
-            break
-        }
-      }
-      worker.port.onmessageerror = (message) => {
-        console.error("On Message Error", message)
-      }
-      console.log("Start Port", worker, worker.port)
-  
-      add_wind_provider()
+    }
+    worker.port.onmessageerror = (message) => {
+      console.error("On Message Error", message)
+    }
+
+    add_wind_provider()
   }
 
   function terminate() {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onBeforeMount } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
 import { PolarService } from './lib/polars';
 
 import { usePhtheirichthysStore, emitter } from './stores/phtheirichthys'
@@ -10,12 +10,10 @@ emitter.on("wind-provider-status", (status) => {
   console.log("Event Wind Status", status)
 })
 
-onBeforeMount(() => {
-  setTimeout(() => {
-    phtheirichthys.init()
+onMounted(() => {
+  phtheirichthys.init()
 
-    PolarService.init()
-  }, 10000)
+  PolarService.init()
 })
 
 onBeforeUnmount(() => {
