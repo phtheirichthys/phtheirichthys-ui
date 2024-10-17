@@ -16,7 +16,8 @@ export type EventData = ({ type: "add-wind-provider" })
 self.onconnect = async (event) => {
     const port = event.ports[0];
 
-    import('./lib/phtheirichthys').then((phtheirichthys) => {
+    const phtheirichthysModule = import.meta.resolve('./lib/phtheirichthys')
+    import(phtheirichthysModule).then((phtheirichthys) => {
         port.onmessage = (message) => {
             const data = message.data;
             switch (data.type) {
