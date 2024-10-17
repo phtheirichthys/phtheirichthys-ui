@@ -1,7 +1,7 @@
 declare const self: SharedWorkerGlobalScope;
 
 import { Point } from './lib/position';
-import { BoatOptions, Heading, Polar, Race, RouteRequest, SnakeParams } from './lib/phtheirichthys';
+import { BoatOptions, Heading, Polar, Race, RouteRequest, SnakeParams } from '@phtheirichthys/phtheirichthys';
 
 export type EventData = ({ type: "add-wind-provider" })
     | ({ type: "get-wind-provider-status" } & { provider: string })
@@ -16,8 +16,7 @@ export type EventData = ({ type: "add-wind-provider" })
 self.onconnect = async (event) => {
     const port = event.ports[0];
 
-    const phtheirichthysModule = import.meta.resolve('./lib/phtheirichthys')
-    import(phtheirichthysModule).then((phtheirichthys) => {
+    import('@phtheirichthys/phtheirichthys').then((phtheirichthys) => {
         port.onmessage = (message) => {
             const data = message.data;
             switch (data.type) {

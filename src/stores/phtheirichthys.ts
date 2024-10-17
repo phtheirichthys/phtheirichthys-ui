@@ -4,7 +4,7 @@ import { BoatConfig, Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 
-import MyWorker from '../worker?sharedworker&inline'
+import workerUrl from '../worker?sharedworker&url'
 import { Wind, WindService } from '../lib/wind';
 import { RaceService } from '../lib/races';
 
@@ -17,7 +17,19 @@ type Events = {
 
 export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
 
-  let worker = new MyWorker()
+    const js = `import ${JSON.stringify(new URL(workerUrl, import.meta.url))}`
+    const blob = new Blob([js], { type: "application/javascript" })
+    function WorkaroundWorker(options?: any) {
+      const objURL = URL.createObjectURL(blob)
+      const worker = new SharedWorker(objURL, { type: "module", name: options?.name })
+      worker.addEventListener("error", (e) => {
+	console.error(e)
+        URL.revokeObjectURL(objURL)
+      })
+      return worker;
+    }
+
+  let worker = WorkaroundWorker()
 
   function init() {
     console.log("init")
