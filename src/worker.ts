@@ -63,9 +63,9 @@ self.onconnect = async (event) => {
                     break
                 case "navigate":
                     console.log("Worker", "Navigation", data)
-                    phtheirichthys.navigate(data.wind_provider, data.polar_id, data.race, data.boat_options, data.request).then((res) => {
+                    phtheirichthys.navigate(data.wind_provider, data.polar_id, data.race, data.boat_options, data.request).then((res: any) => {
                         port.postMessage({type: "navigation", uuid: data.uuid, data: res})
-                    }).catch((e) => {
+                    }).catch((e: any) => {
                         console.error("Error evaluating snake", e)
                     })
                     break
