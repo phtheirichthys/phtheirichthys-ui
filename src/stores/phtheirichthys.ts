@@ -4,7 +4,8 @@ import { BoatConfig, Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys'
 
-import workerUrl from '../worker?sharedworker&url'
+// import workerUrl from '../worker?sharedworker&url'
+import PhtheirichthysWorker from '../worker?sharedworker&inline'
 import { Wind, WindService } from '../lib/wind';
 import { RaceService } from '../lib/races';
 
@@ -17,19 +18,21 @@ type Events = {
 
 export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
 
-    const js = `import ${JSON.stringify(new URL(workerUrl, import.meta.url))}`
-    const blob = new Blob([js], { type: "application/javascript" })
-    function WorkaroundWorker(options?: any) {
-      const objURL = URL.createObjectURL(blob)
-      const worker = new SharedWorker(objURL, { type: "module", name: options?.name })
-      worker.addEventListener("error", (e) => {
-	console.error(e)
-        URL.revokeObjectURL(objURL)
-      })
-      return worker;
-    }
+  // const js = `import ${JSON.stringify(new URL(workerUrl, import.meta.url))}`
+  // const blob = new Blob([js], { type: "application/javascript" })
+  // function WorkaroundWorker(options?: any) {
+  //   const objURL = URL.createObjectURL(blob)
+  //   const worker = new SharedWorker(objURL, { type: "module", name: options?.name })
+  //   worker.addEventListener("error", (e) => {
+      // console.error(e)
+      // URL.revokeObjectURL(objURL)
+    // })
+    // return worker;
+  // }
 
-  let worker = WorkaroundWorker()
+  // let worker = WorkaroundWorker()
+
+  let worker = new PhtheirichthysWorker()
 
   function init() {
     console.log("init")
