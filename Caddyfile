@@ -9,6 +9,16 @@
 	# Enable the static file server.
 	file_server
 
+	header {
+		Access-Control-Allow-Headers *
+		Access-Control-Allow-Methods *
+		Access-Control-Allow-Origin *
+	}
+	@options {
+		method OPTIONS
+	}
+	respond @options 204
+	
 	# Redirect any 404 to index
 	try_files {path} /
 }
