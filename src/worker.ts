@@ -12,7 +12,7 @@ export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "eval-snake" } & { uuid: string, route_request: phtheirichthys.RouteRequest, params: phtheirichthys.SnakeParams, heading: phtheirichthys.Heading })
     | ({ type: "navigate" } & { uuid: string, wind_provider: string, polar_id: string, race: phtheirichthys.Race, boat_options: phtheirichthys.BoatOptions, request: phtheirichthys.RouteRequest } )
     | ({ type: "add-polar" } & { name: string, polar: phtheirichthys.Polar })
-    | ({ type: "test-webgpu" })
+    | ({ type: "test-webgpu" } & { uuid: string })
 
 let wasmResolve: (value: any) => void;
 let wasmReady = new Promise((resolve) => {
@@ -85,6 +85,7 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "snake", uuid: data.uuid, data: res})
                     } catch(e) {
                         console.error("Error evaluating snake", e)
+                        port.postMessage({type: "error", uuid: data.uuid, error: e})
                     }
                 })
                 break
@@ -98,11 +99,16 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "navigation", uuid: data.uuid, data: res})
                     }).catch((e: any) => {
                         console.error("Error evaluating snake", e)
+                        port.postMessage({type: "error", uuid: data.uuid, error: e})
                     })
                 })
                 break
             case "test-webgpu":
-                wasmReady.then((phtheirichthys: any) => phtheirichthys.test_webgpu())
+                wasmReady.then((phtheirichthys: any) => phtheirichthys.test_webgpu().then(() => {
+                    port.postMessage({type: "test-webgpu", uuid: data.uuid, ok: true})
+                })).catch((e) => {
+                    port.postMessage({type: "error", uuid: data.uuid, error: e})
+                })
                 break
         }
     }

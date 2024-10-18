@@ -39,8 +39,9 @@ onMounted(() => {
 
     phtheirichthys.eval_snake({heading: b}).then((snake_result) => {
       display(snake_result)
+    }).catch((e) => {
+      console.error(e)
     })
-
   })
 })
 

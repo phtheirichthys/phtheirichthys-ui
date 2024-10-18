@@ -119,13 +119,19 @@ function navigate() {
   phtheirichthys.navigate(props.race, toRaw(boat.value)).then((res) => {
     console.log(routeResult)
     routeResult.value = res
+  }).catch((e) => {
+    console.error(e)
   }).finally(() => {
     navigating.value = false
   })
 }
 
 function test_webgpu() {
-  phtheirichthys.test_webgpu()
+  phtheirichthys.test_webgpu().then(() => {
+    console.log("test ok")
+  }).catch((e) => {
+    console.error(e)
+  })
 }
 
 </script>

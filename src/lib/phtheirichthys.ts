@@ -127,12 +127,16 @@ export async function eval_snake(heading: phtheirichthys.Heading) {
 
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
-        const { uuid, data } = message.data
+            const { uuid, data } = message.data
 
-        if (uuid === request_uuid) {
-            worker.port.removeEventListener("message", handler)
-            resolve(data)
-        }
+            if (uuid === request_uuid) {
+                worker.port.removeEventListener("message", handler)
+                if (data.type === "snake") {
+                    resolve(data)
+                } else {
+                    reject(data)
+                }
+            }
         }
         worker.port.addEventListener("message", handler)
 
@@ -163,8 +167,27 @@ export function add_polar(name: string, polar: phtheirichthys.Polar) {
     worker.port.postMessage({ type: "add-polar", name, polar })
 }
 
-export function test_webgpu() {
-    worker.port.postMessage({ type: "test-webgpu" })
+export async function test_webgpu() {
+
+    return new Promise<phtheirichthys.RouteResult>((resolve, reject) => {
+        const request_uuid = uuidv4()
+        const handler = (message: MessageEvent<any>) => {
+        const { uuid, data } = message.data
+
+        if (uuid === request_uuid) {
+            worker.port.removeEventListener("message", handler)
+            if (data.type === "test-webgpu") {
+                resolve(data)
+            } else {
+                reject(data)
+            }
+        }
+        }
+        worker.port.addEventListener("message", handler)
+
+        worker.port.postMessage({ type: "test-webgpu", uuid: request_uuid })
+    })
+
 }
 
 export async function navigate(race_id: string, boat_config: BoatConfig) {
@@ -177,14 +200,18 @@ export async function navigate(race_id: string, boat_config: BoatConfig) {
         status: boat_config.status
     }
 
-    return new Promise<phtheirichthys.RouteResult>((resolve) => {
+    return new Promise<phtheirichthys.RouteResult>((resolve, reject) => {
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
         const { uuid, data } = message.data
 
         if (uuid === request_uuid) {
             worker.port.removeEventListener("message", handler)
-            resolve(data)
+            if (data.type === "navigation") {
+                resolve(data)
+            } else {
+                reject(data)
+            }
         }
         }
         worker.port.addEventListener("message", handler)
