@@ -33,6 +33,9 @@ export const usePhtheirichthysStore = defineStore('phtheirichthys', () => {
   // let worker = WorkaroundWorker()
 
   let worker = new PhtheirichthysWorker()
+  let wasmUrl = new URL("../lib/phtheirichthys", import.meta.url)
+  console.log(wasmUrl)
+  worker.port.postMessage({ type: "load", wasmUrl: wasmUrl.toString() })
 
   function init() {
     console.log("init")

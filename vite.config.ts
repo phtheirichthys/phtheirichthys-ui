@@ -13,11 +13,11 @@ export default defineConfig({
     plugins: () => [
       wasm(),
     ],
-    rollupOptions: {
-      output: {
-        inlineDynamicImports: true,
-      }
-    },
+    // rollupOptions: {
+    //   output: {
+    //     inlineDynamicImports: true,
+    //   }
+    // },
   },
   esbuild: {
     supported: {
