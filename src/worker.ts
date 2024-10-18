@@ -1,7 +1,7 @@
 declare const self: SharedWorkerGlobalScope;
 
 import { Point } from './lib/position';
-import { BoatOptions, Heading, Polar, Race, RouteRequest, SnakeParams } from './lib/phtheirichthys';
+import init, * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys';
 
 export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "add-wind-provider" })
@@ -9,9 +9,9 @@ export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "get-wind" } & { uuid: string, provider: string, moment: Date, point: Point })
     | ({ type: "add-land-provider" })
     | ({ type: "draw-land" } & { canvas: OffscreenCanvas, provider: string, coords: { x: number, y: number, z: number }, size: { width: number, height: number } })
-    | ({ type: "eval-snake" } & { uuid: string, route_request: RouteRequest, params: SnakeParams, heading: Heading })
-    | ({ type: "navigate" } & { uuid: string, wind_provider: string, polar_id: string, race: Race, boat_options: BoatOptions, request: RouteRequest } )
-    | ({ type: "add-polar" } & { name: string, polar: Polar })
+    | ({ type: "eval-snake" } & { uuid: string, route_request: phtheirichthys.RouteRequest, params: phtheirichthys.SnakeParams, heading: phtheirichthys.Heading })
+    | ({ type: "navigate" } & { uuid: string, wind_provider: string, polar_id: string, race: phtheirichthys.Race, boat_options: phtheirichthys.BoatOptions, request: phtheirichthys.RouteRequest } )
+    | ({ type: "add-polar" } & { name: string, polar: phtheirichthys.Polar })
     | ({ type: "test-webgpu" })
 
 let wasmResolve: (value: any) => void;
@@ -22,13 +22,25 @@ let wasmReady = new Promise((resolve) => {
 self.onconnect = async (event) => {
     const port = event.ports[0];
 
-    port.onmessage = (message) => {
+    port.onmessage = async (message) => {
         const data = message.data as EventData;
         switch (data.type) {
             case "load":
-                import(data.wasmUrl).then((phtheirichthys) => {
-                    wasmResolve(phtheirichthys)
-                })
+                console.log("load", data.wasmUrl)
+                await init(data.wasmUrl)
+                // import("@phtheirichthys/phtheirichthys/phtheirichthys").then((phth) => {
+                    
+                // })
+                // console.log("load", data.wasmUrl)
+                // console.log("import ...")
+                // let phtheirichthys: any
+                // importScripts(data.wasmUrl)
+                // console.log("imported !!!")
+                // console.log(phtheirichthys)
+                // phtheirichthys.load().then((phtheirichthys: any) => {
+                //     wasmResolve(phtheirichthys)
+                // })
+                wasmResolve(phtheirichthys)
                 break
 
             case "add-wind-provider":

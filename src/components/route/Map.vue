@@ -12,16 +12,14 @@ import Route from './Route.vue'
 import { ref, onMounted, Ref, toRaw } from 'vue'
 import { Wind } from '../../lib/wind';
 import { BoatConfig, Point } from '../../lib/position';
-import { RouteResult } from '@phtheirichthys/phtheirichthys'
+import type { RouteResult } from '@phtheirichthys/phtheirichthys/phtheirichthys'
 
-import { usePhtheirichthysStore } from '../../stores/phtheirichthys'
+import * as phtheirichthys from '../../lib/phtheirichthys'
 
 const props = defineProps<{
   boat: string,
   race: string,
 }>()
-
-const phtheirichthys = usePhtheirichthysStore()
 
 const routeResult: Ref<RouteResult | null> = ref(null)
 

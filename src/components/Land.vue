@@ -2,13 +2,11 @@
 import L from 'leaflet'
 import { onMounted } from 'vue';
 
-import { usePhtheirichthysStore } from '../stores/phtheirichthys'
+import * as phtheirichthys from '../lib/phtheirichthys'
 
 const props = defineProps<{
     layer: L.Map | L.LayerGroup,
 }>()
-
-const phtheirichthys = usePhtheirichthysStore()
 
 onMounted(() => {
     phtheirichthys.add_land_provider()

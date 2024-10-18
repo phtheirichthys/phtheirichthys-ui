@@ -2,11 +2,9 @@
 import { onBeforeUnmount, onMounted } from 'vue';
 import { PolarService } from './lib/polars';
 
-import { usePhtheirichthysStore, emitter } from './stores/phtheirichthys'
+import * as phtheirichthys from './lib/phtheirichthys'
 
-const phtheirichthys = usePhtheirichthysStore()
-
-emitter.on("wind-provider-status", (status) => {
+phtheirichthys.emitter.on("wind-provider-status", (status) => {
   console.log("Event Wind Status", status)
 })
 

@@ -1,6 +1,6 @@
-import { Polar } from "@phtheirichthys/phtheirichthys";
+import type { Polar } from "@phtheirichthys/phtheirichthys/phtheirichthys";
 import { Data } from "./data";
-import { usePhtheirichthysStore } from '../stores/phtheirichthys'
+import * as phtheirichthys from '../lib/phtheirichthys'
 
 interface PolarList {
     id: number,
@@ -11,8 +11,6 @@ export module PolarService {
     let polars: Map<string, Polar>;
 
     export function init() {
-        const phtheirichthys = usePhtheirichthysStore()
-
         polars = Data.POLARS.getItem() ?? new Map<string, Polar>()
 
         polars.forEach((polar) => {
@@ -21,8 +19,6 @@ export module PolarService {
     }
 
     function add(polar: Polar) {
-        const phtheirichthys = usePhtheirichthysStore()
-
         let id = polar._id.toString()
         console.log(polars)
         polars.set(id, polar)

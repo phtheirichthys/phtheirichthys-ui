@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { SnakeResult } from '@phtheirichthys/phtheirichthys';
+import type { SnakeResult } from '@phtheirichthys/phtheirichthys/phtheirichthys';
 import { Point } from '../../lib/position'
-import { usePhtheirichthysStore } from '../../stores/phtheirichthys'
+import * as phtheirichthys from '../../lib/phtheirichthys'
 import { onMounted } from 'vue'
 import L from 'leaflet'
 
@@ -9,8 +9,6 @@ const props = defineProps<{
   map: L.Map,
   layerControl: L.Control.Layers
 }>()
-
-const phtheirichthys = usePhtheirichthysStore()
 
 const layer = new L.LayerGroup()
 //const markerLayer = L.layerGroup().addTo(layer)
