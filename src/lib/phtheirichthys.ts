@@ -127,11 +127,11 @@ export async function eval_snake(heading: phtheirichthys.Heading) {
 
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
-            const { uuid, data } = message.data
+            const { type, uuid, data } = message.data
 
             if (uuid === request_uuid) {
                 worker.port.removeEventListener("message", handler)
-                if (data.type === "snake") {
+                if (type === "snake") {
                     resolve(data)
                 } else {
                     reject(data)
@@ -172,11 +172,11 @@ export async function test_webgpu() {
     return new Promise<phtheirichthys.RouteResult>((resolve, reject) => {
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
-        const { uuid, data } = message.data
+        const { type, uuid, data } = message.data
 
         if (uuid === request_uuid) {
             worker.port.removeEventListener("message", handler)
-            if (data.type === "test-webgpu") {
+            if (type === "test-webgpu") {
                 resolve(data)
             } else {
                 reject(data)
@@ -203,11 +203,11 @@ export async function navigate(race_id: string, boat_config: BoatConfig) {
     return new Promise<phtheirichthys.RouteResult>((resolve, reject) => {
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
-        const { uuid, data } = message.data
+        const { type, uuid, data } = message.data
 
         if (uuid === request_uuid) {
             worker.port.removeEventListener("message", handler)
-            if (data.type === "navigation") {
+            if (type === "navigation") {
                 resolve(data)
             } else {
                 reject(data)
