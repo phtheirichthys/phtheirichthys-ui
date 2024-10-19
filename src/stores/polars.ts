@@ -22,7 +22,7 @@ export const usePolarsStore = defineStore('polars', () => {
   function add(polar: Polar) {
     let id = polar._id.toString()
     polars.value.set(id, polar)
-    Data.POLARS.setItem(polars)
+    Data.POLARS.setItem(toRaw(polars.value))
 
     phtheirichthys.add_polar(id, polar)
   }
@@ -56,7 +56,7 @@ export const usePolarsStore = defineStore('polars', () => {
     polars.value.delete(id)
     console.log("remove", id, polars)
 
-    Data.POLARS.setItem(polars)
+    Data.POLARS.setItem(toRaw(polars.value))
   }
 
 

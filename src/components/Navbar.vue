@@ -45,17 +45,10 @@ function switchTheme() {
 
     <div id="navbar" class="navbar-menu">
       <div class="navbar-start">
-        <a class="navbar-item">
-          Home
-        </a>
-
-        <a class="navbar-item">
-          Races
-        </a>
-
-        <a class="navbar-item">
-          Polars
-        </a>
+        <RouterLink to="/" class="navbar-item">Home</RouterLink>
+        <RouterLink to="/boats" class="navbar-item">Boats</RouterLink>
+        <RouterLink to="/races" class="navbar-item">Races</RouterLink>
+        <RouterLink to="/polars" class="navbar-item">Polars</RouterLink>
       </div>
 
       <div class="navbar-end">

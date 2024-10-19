@@ -22,12 +22,14 @@ import '@fortawesome/fontawesome-free/js/all.js'
 new VConsole()
 
 import Home from './components/Home.vue'
+import Boats from './components/Boats.vue'
 import Polars from './components/Polars.vue'
 import Races from './components/Races.vue'
 import Route from './components/Route.vue'
 
 const routes = [
   { path: '/', component: Home },
+  { path: '/boats', component: Boats },
   { path: '/polars', component: Polars },
   { path: '/races', component: Races },
   { name: 'navigate', path: '/:boat/:race', component: Route, props: true }

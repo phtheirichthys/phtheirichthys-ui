@@ -7,6 +7,7 @@ export class Data {
     compress: boolean
     static RACES = new Data("_races_", false, false)
     static POLARS = new Data("_polars_", false, false)
+    static BOATS = new Data("_boats_", false, false)
 
     constructor(prefix: string, boat: boolean, race: boolean, compress: boolean = false) {
         this.prefix = prefix
