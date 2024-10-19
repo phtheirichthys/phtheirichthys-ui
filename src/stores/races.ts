@@ -1,11 +1,13 @@
 import { defineStore } from "pinia"
-import { ref } from "vue"
+import { ref, toRaw } from "vue"
 import { Data } from "../lib/data"
 import { Race } from "@phtheirichthys/phtheirichthys"
 
 export const useRacesStore = defineStore('races', () => {
 
-  let races = ref(Data.RACES.getItem<Map<string, Race>>() ?? new Map<string, Race>())
+  console.log("Load Races Store")
+
+  const races = ref(Data.RACES.getItem<Map<string, Race>>() ?? new Map<string, Race>())
 
   function add(race: Race) {
     let id = race.id.toString()
@@ -19,6 +21,7 @@ export const useRacesStore = defineStore('races', () => {
   }
 
   function list(): Array<Race> {
+    console.log("races", races, races.value)
     return Array.from(races.value).map(([, race]) => (race))
   }
 
@@ -41,7 +44,7 @@ export const useRacesStore = defineStore('races', () => {
   function save(race: Race) {
     races.value.set(race.id, race)
 
-    Data.RACES.setItem(races)
+    Data.RACES.setItem(toRaw(races.value))
   }
 
   function remove(race: Race) {

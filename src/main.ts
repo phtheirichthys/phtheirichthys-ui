@@ -5,6 +5,10 @@ import { createWebHashHistory, createRouter } from 'vue-router'
 
 import App from './App.vue'
 
+const pinia = createPinia()
+const app = createApp(App)
+app.use(pinia)
+
 import 'bulma/css/bulma.css'
 
 import 'leaflet/dist/leaflet.css'
@@ -14,10 +18,6 @@ import 'leaflet-sidebar-v2/css/leaflet-sidebar.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
 
-const pinia = createPinia()
-
-const app = createApp(App)
-app.use(pinia)
 
 new VConsole()
 

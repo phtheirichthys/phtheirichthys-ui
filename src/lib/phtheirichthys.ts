@@ -3,12 +3,9 @@ import { BoatConfig, Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 
 import { Wind, WindService } from '../lib/wind';
-import { useRacesStore } from '../stores/races';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys'
 import PhtheirichthysWorker from '../worker?sharedworker&inline'
 import wasmUrl from '@phtheirichthys/phtheirichthys/phtheirichthys_bg.wasm?url'
-
-const racesStore = useRacesStore()
 
 export const emitter = mitt<Events>()
 
@@ -27,15 +24,10 @@ export function init() {
         console.log("error", error)
     }
     worker.port.onmessage = (message) => {
-        const { type, uuid, data } = message.data
-    
-        console.debug("Worker", "on message", type, uuid, data)
+        const { type, data } = message.data
     
         switch (type) {
         case "wind-provider-status":
-            emitter.emit(type, data)
-            break
-        case "navigation":
             emitter.emit(type, data)
             break
         }
@@ -56,25 +48,16 @@ function add_wind_provider() {
     worker.port.postMessage({ type: "add-wind-provider" })
 }
 
-// function get_wind_provider_status(provider: string) {
-//   worker.port.postMessage({ type: "get-wind-provider-status", provider })
-// }
-
 export async function get_wind(point: Point) {
-    return new Promise<phtheirichthys.Wind>((resolve, reject) => {
-        if (!worker) {
-        reject()
-        return
-        }
-
+    return new Promise<phtheirichthys.Wind>((resolve) => {
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
-        const { uuid, data } = message.data
+            const { uuid, data } = message.data
 
-        if (uuid === request_uuid) {
-            worker.port.removeEventListener("message", handler)
-            resolve(data)
-        }
+            if (uuid === request_uuid) {
+                worker.port.removeEventListener("message", handler)
+                resolve(data)
+            }
         }
         worker.port.addEventListener("message", handler)
 
@@ -120,11 +103,6 @@ export async function eval_snake(heading: phtheirichthys.Heading) {
     }
 
     return new Promise<phtheirichthys.SnakeResult>((resolve, reject) => {
-
-        if (!worker) {
-            reject()
-            return
-        }
 
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
@@ -191,8 +169,7 @@ export async function test_webgpu() {
 
 }
 
-export async function navigate(race_id: string, boat_config: BoatConfig) {
-    let race: phtheirichthys.Race = racesStore.get(race_id)!;
+export async function navigate(race: phtheirichthys.Race, boat_config: BoatConfig) {
 
     let request = {
         from: { lat: 0, lon: 0 },

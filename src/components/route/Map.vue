@@ -13,13 +13,15 @@ import { ref, onMounted, Ref, toRaw } from 'vue'
 import { Wind } from '../../lib/wind';
 import { BoatConfig, Point } from '../../lib/position';
 import type { RouteResult } from '@phtheirichthys/phtheirichthys/phtheirichthys'
-
+import { useRacesStore } from '../../stores/races'
 import * as phtheirichthys from '../../lib/phtheirichthys'
 
 const props = defineProps<{
   boat: string,
   race: string,
 }>()
+
+const racesStore = useRacesStore()
 
 const routeResult: Ref<RouteResult | null> = ref(null)
 
@@ -116,7 +118,9 @@ function pan() {
 
 function navigate() {
   navigating.value = true
-  phtheirichthys.navigate(props.race, toRaw(boat.value)).then((res) => {
+
+  let race = racesStore.get(props.race)!;
+  phtheirichthys.navigate(toRaw(race), toRaw(boat.value)).then((res) => {
     console.log(routeResult)
     routeResult.value = res
   }).catch((e) => {

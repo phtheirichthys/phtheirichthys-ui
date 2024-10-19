@@ -1,6 +1,6 @@
 import { Polar } from "@phtheirichthys/phtheirichthys"
 import { defineStore } from "pinia"
-import { ref } from "vue"
+import { ref, toRaw } from "vue"
 import { Data } from "../lib/data"
 import * as phtheirichthys from '../lib/phtheirichthys'
 
@@ -11,10 +11,12 @@ interface PolarList {
 
 export const usePolarsStore = defineStore('polars', () => {
 
+  console.log("Load Polars Store")
+
   let polars = ref(Data.POLARS.getItem<Map<string, Polar>>() ?? new Map<string, Polar>())
 
   polars.value.forEach((polar) => {
-    phtheirichthys.add_polar(polar._id.toString(), polar)
+    phtheirichthys.add_polar(polar._id.toString(), toRaw(polar))
   })
 
   function add(polar: Polar) {
@@ -47,7 +49,7 @@ export const usePolarsStore = defineStore('polars', () => {
   function save(polar: Polar) {
     polars.value.set(polar._id.toString(), polar)
 
-    Data.POLARS.setItem(polars)
+    Data.POLARS.setItem(toRaw(polars.value))
   }
 
   function remove(id: string) {
