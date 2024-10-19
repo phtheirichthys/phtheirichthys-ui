@@ -8,6 +8,7 @@ export class Data {
     static RACES = new Data("_races_", false, false)
     static POLARS = new Data("_polars_", false, false)
     static BOATS = new Data("_boats_", false, false)
+    static BOAT_STATUS = new Data("_boat_status_", true, true)
 
     constructor(prefix: string, boat: boolean, race: boolean, compress: boolean = false) {
         this.prefix = prefix
@@ -70,7 +71,7 @@ export class Data {
     }
 }
 
-interface Context {
+export interface Context {
     boat: string | null
     race: string | null
 }

@@ -58,7 +58,6 @@ export const useRacesStore = defineStore('races', () => {
   function get(id: string): Race | null {
     console.log(id, races)
 
-
     return races.value.get(id) || null
   }
 
