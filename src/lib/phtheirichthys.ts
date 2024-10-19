@@ -3,11 +3,12 @@ import { BoatConfig, Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 
 import { Wind, WindService } from '../lib/wind';
-import { RaceService } from '../lib/races';
+import { useRacesStore } from '../stores/races';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys'
 import PhtheirichthysWorker from '../worker?sharedworker&inline'
 import wasmUrl from '@phtheirichthys/phtheirichthys/phtheirichthys_bg.wasm?url'
 
+const racesStore = useRacesStore()
 
 export const emitter = mitt<Events>()
 
@@ -191,7 +192,7 @@ export async function test_webgpu() {
 }
 
 export async function navigate(race_id: string, boat_config: BoatConfig) {
-    let race: phtheirichthys.Race = RaceService.get(race_id)!;
+    let race: phtheirichthys.Race = racesStore.get(race_id)!;
 
     let request = {
         from: { lat: 0, lon: 0 },

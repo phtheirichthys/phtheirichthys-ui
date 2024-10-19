@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import Navbar from './Navbar.vue'
-import { RaceService } from '../lib/races'
-import { PolarService } from '../lib/polars'
+import { useRacesStore } from '../stores/races'
+import { usePolarsStore } from '../stores/polars'
 import { Race, Buoy as IBuoy } from '@phtheirichthys/phtheirichthys'
 //import draggable from 'vuedraggable'
 
 import Buoy from './Buoy.vue'
 import L from 'leaflet';
 
-const races = ref(RaceService.list())
+const racesStore = useRacesStore()
+const polarsStore = usePolarsStore()
+
+const races = ref(racesStore.list())
 
 const importIsActive = ref(false)
 const importText = ref("")
 const importError = ref("")
-const race = ref(RaceService.newRace())
+const race = ref(racesStore.newRace())
 const edit = ref(false)
 
 function importRace() {
   console.log("import race", importText.value)
 
   try {
-    RaceService.importRace(importText.value)
+    racesStore.importRace(importText.value)
     importIsActive.value = false
     importText.value = ""
   } catch(e) {
@@ -55,13 +58,13 @@ function add() {
 
 function save() {
   edit.value = false
-  RaceService.save(race.value)
+  racesStore.save(race.value)
 }
 
 function remove(r: Race) {
-  RaceService.remove(race.value)
+  racesStore.remove(race.value)
   races.value.splice(races.value.indexOf(r), 1)
-  race.value = RaceService.newRace()
+  race.value = racesStore.newRace()
 }
 
 function validate(buoy: IBuoy) {
@@ -197,7 +200,7 @@ onMounted(() => {
                           <div class="control is-expanded">
                             <div class="select is-fullwidth is-small">
                               <select v-model="race.boat">
-                                <option v-for="polar in PolarService.list()" :key="polar.id" :value="polar.id">{{ polar.label }}</option>
+                                <option v-for="polar in polarsStore.list()" :key="polar.id" :value="polar.id">{{ polar.label }}</option>
                               </select>
                             </div>
                           </div>

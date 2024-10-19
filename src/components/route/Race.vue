@@ -2,7 +2,7 @@
 import L from 'leaflet'
 
 import Buoy from '../Buoy.vue'
-import { RaceService } from '../../lib/races';
+import { useRacesStore } from '../../stores/races';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -10,7 +10,9 @@ const props = defineProps<{
   raceId: string
 }>()
 
-const race = ref(RaceService.get(props.raceId))
+const racesStore = useRacesStore()
+
+const race = ref(racesStore.get(props.raceId))
 
 
 const layer = L.layerGroup()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Buoy, Coords, Door } from '@phtheirichthys/phtheirichthys'
 import { computed, onMounted, ref, watch } from 'vue'
-import { Utils } from '../lib/utils'
+import { dd2dms, lat2string, lon2string } from '../lib/utils'
 import L from 'leaflet'
 import "leaflet-extra-markers"
 
@@ -39,10 +39,10 @@ const colorClassRight = computed(() => {
 })
 
 function coord(coords: Coords) {
-  var lat = Utils.dd2dms(coords!.lat)
-  var lon = Utils.dd2dms(coords.lon)
+  var lat = dd2dms(coords!.lat)
+  var lon = dd2dms(coords.lon)
 
-  return Utils.lat2string(lat) + " - " + Utils.lon2string(lon)
+  return lat2string(lat) + " - " + lon2string(lon)
 }
 
 function reverse() {

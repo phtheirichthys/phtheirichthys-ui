@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, Ref } from 'vue';
-import { PolarService } from '../lib/polars';
+import { usePolarsStore } from '../stores/polars';
 
 import Navbar from './Navbar.vue'
 
-const polars = ref(PolarService.list())
+const polarsStore = usePolarsStore()
+
+const polars = ref(polarsStore.list())
 
 const importIsActive = ref(false)
 const importText = ref("")
@@ -16,8 +18,8 @@ function select(id: number) {
 }
 
 function remove(id: number) {
-  PolarService.remove(id.toString())
-  polars.value = PolarService.list()
+  polarsStore.remove(id.toString())
+  polars.value = polarsStore.list()
   if (polarId.value === id) {
     polarId.value = null
   }
@@ -27,7 +29,7 @@ function importPolar() {
   console.log("import polar", importText.value)
 
   try {
-    PolarService.importPolar(importText.value)
+    polarsStore.importPolar(importText.value)
     importIsActive.value = false
     importText.value = ""
   } catch(e) {

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue';
-import { PolarService } from './lib/polars';
-
 import * as phtheirichthys from './lib/phtheirichthys'
 
 phtheirichthys.emitter.on("wind-provider-status", (status) => {
@@ -10,8 +8,6 @@ phtheirichthys.emitter.on("wind-provider-status", (status) => {
 
 onMounted(() => {
   phtheirichthys.init()
-
-  PolarService.init()
 })
 
 onBeforeUnmount(() => {

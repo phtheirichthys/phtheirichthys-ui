@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Ref, ref } from 'vue';
-import { RaceService } from '../lib/races';
+import { useRacesStore } from '../stores/races';
 import Navbar from './Navbar.vue'
 import { useRouter } from 'vue-router';
+
+const racesStore = useRacesStore()
 
 const router = useRouter()
 
@@ -32,7 +34,7 @@ function navigate() {
               </tr>
             </thead>
             <tbody>
-              <tr :class="{'is-selected':b.id === boat}" v-for="b in RaceService.list()" @click="boat = b.id">
+              <tr :class="{'is-selected':b.id === boat}" v-for="b in racesStore.list()" @click="boat = b.id">
                 <td>{{ b.name }}</td>
               </tr>
             </tbody>
@@ -46,7 +48,7 @@ function navigate() {
               </tr>
             </thead>
             <tbody>
-              <tr :class="{'is-selected':r.id === race}" v-for="r in RaceService.list()" @click="race = r.id">
+              <tr :class="{'is-selected':r.id === race}" v-for="r in racesStore.list()" @click="race = r.id">
                 <td>{{ r.name }}</td>
               </tr>
             </tbody>
