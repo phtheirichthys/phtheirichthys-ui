@@ -9,6 +9,7 @@ export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "get-wind" } & { uuid: string, provider: string, moment: Date, point: Point })
     | ({ type: "add-land-provider" })
     | ({ type: "draw-land" } & { canvas: OffscreenCanvas, provider: string, coords: { x: number, y: number, z: number }, size: { width: number, height: number } })
+    | ({ type: "draw-wind" } & { canvas: OffscreenCanvas, provider: string, moment: Date, coords: { x: number, y: number, z: number }, size: { width: number, height: number } })
     | ({ type: "eval-snake" } & { uuid: string, route_request: phtheirichthys.RouteRequest, params: phtheirichthys.SnakeParams, heading: phtheirichthys.Heading })
     | ({ type: "navigate" } & { uuid: string, wind_provider: string, polar_id: string, race: phtheirichthys.Race, boat_options: phtheirichthys.BoatOptions, request: phtheirichthys.RouteRequest } )
     | ({ type: "add-polar" } & { name: string, polar: phtheirichthys.Polar })
@@ -41,6 +42,7 @@ self.onconnect = async (event) => {
                 //     wasmResolve(phtheirichthys)
                 // })
                 wasmResolve(phtheirichthys)
+                port.postMessage({type: "loaded"})
                 break
 
             case "add-wind-provider":
@@ -73,6 +75,15 @@ self.onconnect = async (event) => {
                 wasmReady.then((phtheirichthys: any) => {
                     try {
                         phtheirichthys.draw_land(data.provider, data.canvas, data.coords.x, data.coords.y, data.coords.z, data.size.width, data.size.height)
+                    } catch(e) {
+                        console.error("Drawing land failed", data.provider, e)
+                    }
+                })
+                break
+            case "draw-wind":
+                wasmReady.then((phtheirichthys: any) => {
+                    try {
+                        phtheirichthys.draw_wind(data.provider, data.canvas, data.moment, data.coords.x, data.coords.y, data.coords.z, data.size.width, data.size.height)
                     } catch(e) {
                         console.error("Drawing land failed", data.provider, e)
                     }

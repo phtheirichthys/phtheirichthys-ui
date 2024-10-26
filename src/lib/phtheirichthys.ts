@@ -1,5 +1,5 @@
 import mitt from 'mitt'
-import { BoatConfig, Point } from '../lib/position'
+import { Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 
 import { Wind, WindService } from '../lib/wind';
@@ -10,6 +10,7 @@ import wasmUrl from '@phtheirichthys/phtheirichthys/phtheirichthys_bg.wasm?url'
 export const emitter = mitt<Events>()
 
 type Events = {
+  'loaded': undefined,
   'wind-provider-status': any,
   'navigation': any
 }
@@ -27,6 +28,10 @@ export function init() {
         const { type, data } = message.data
     
         switch (type) {
+        case "loaded":
+            console.log("Wasm loaded")
+            emitter.emit("loaded")
+            break
         case "wind-provider-status":
             emitter.emit(type, data)
             break
@@ -72,6 +77,10 @@ export function add_land_provider() {
 
 export function draw_land(canvas: OffscreenCanvas, x: number, y: number, z: number, width: number, height: number) {
     worker.port.postMessage({ type: "draw-land", canvas, provider: "vr", coords: { x, y, z }, size: { width, height } }, [canvas])
+}
+
+export function draw_wind(canvas: OffscreenCanvas, m: Date, x: number, y: number, z: number, width: number, height: number) {
+    worker.port.postMessage({ type: "draw-wind", canvas, provider: "vr", moment: m, coords: { x, y, z }, size: { width, height } }, [canvas])
 }
 
 export async function eval_snake(heading: phtheirichthys.Heading) {
@@ -169,13 +178,15 @@ export async function test_webgpu() {
 
 }
 
-export async function navigate(race: phtheirichthys.Race, boat_config: BoatConfig) {
+export async function navigate(race: phtheirichthys.Race, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus) {
+
+    console.log("navigate : ", options, position, settings, status)
 
     let request = {
-        from: { lat: 0, lon: 0 },
+        from: position,
         start_time: new Date().toISOString(),
-        boat_settings: boat_config.settings,
-        status: boat_config.status
+        boat_settings: settings,
+        status: status,
     }
 
     return new Promise<phtheirichthys.RouteResult>((resolve, reject) => {
@@ -194,14 +205,17 @@ export async function navigate(race: phtheirichthys.Race, boat_config: BoatConfi
         }
         worker.port.addEventListener("message", handler)
 
+        const message = {
+            type: "navigate", uuid: request_uuid,
+            wind_provider: WindService.get_provider(),
+            polar_id: "19",
+            race,
+            boat_options: options,
+            request
+        }
 
-        worker.port.postMessage({
-        type: "navigate", uuid: request_uuid,
-        wind_provider: WindService.get_provider(),
-        polar_id: "19",
-        race,
-        boat_options: boat_config.options,
-        request
-        })
+        console.log(message)
+
+        worker.port.postMessage(message)
     })
 }

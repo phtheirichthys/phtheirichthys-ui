@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Buoy, Coords, Door } from '@phtheirichthys/phtheirichthys'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, toRaw, watch } from 'vue'
 import { dd2dms, lat2string, lon2string } from '../lib/utils'
 import L from 'leaflet'
 import "leaflet-extra-markers"
@@ -11,7 +11,7 @@ const props = defineProps<{
   layer: L.LayerGroup,
 }>()
 
-const emit = defineEmits(['validate'])
+const emit = defineEmits(['validate', 'change'])
 
 const buoy = ref(props.buoy)
 const type = ref(buoy.value.type)
@@ -167,6 +167,7 @@ function drawBuoy() {
         var latlng = event.target.getLatLng();
 
         buoy.value.destination = {lat: latlng.lat, lon: latlng.lng}
+        emit('change', toRaw(buoy))
       }).addTo(props.layer)
     markers.value.push(endM)
     var zone = L.circle(L.latLng(buoy.value.destination.lat, buoy.value.destination.lon + wrap), {radius: buoy.value.radius * 1852, color: "red", weight: 2, dashArray: [5, 8]}).addTo(props.layer);
@@ -179,6 +180,7 @@ function drawBuoy() {
         var latlng = event.target.getLatLng();
 
         buoy.value.destination = {lat: latlng.lat, lon: latlng.lng}
+        emit('change', toRaw(buoy))
       }).addTo(props.layer)
     markers.value.push(m1)
 
@@ -192,6 +194,7 @@ function drawBuoy() {
         let door = buoy.value as Door
         door.port = {lat: latlng.lat, lon: latlng.lng}
         line.setLatLngs([[door.port.lat, door.port.lon + wrap], [door.starboard.lat, door.starboard.lon + wrap]])
+        emit('change', toRaw(buoy))
       }).addTo(props.layer)
     markers.value.push(m1)
 
@@ -201,6 +204,7 @@ function drawBuoy() {
         let door = buoy.value as Door
         door.starboard = {lat: latlng.lat, lon: latlng.lng}
         line.setLatLngs([[door.port.lat, door.port.lon + wrap], [door.starboard.lat, door.starboard.lon + wrap]])
+        emit('change', toRaw(buoy))
       }).addTo(props.layer)
     markers.value.push(m2)
   }  
@@ -210,7 +214,7 @@ onMounted(() => {
   redraw()
 })
 
-watch(buoy, () => {
+watch([buoy, () => props.edit], () => {
   redraw()
 },
 { deep: true })

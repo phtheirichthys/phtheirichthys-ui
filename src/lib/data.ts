@@ -8,7 +8,11 @@ export class Data {
     static RACES = new Data("_races_", false, false)
     static POLARS = new Data("_polars_", false, false)
     static BOATS = new Data("_boats_", false, false)
-    static BOAT_STATUS = new Data("_boat_status_", true, true)
+    static OPTIONS = new Data("_options_", true, true)
+    static POSITION = new Data("_position_", true, true)
+    static SETTINGS = new Data("_settings_", true, true)
+    static PAN_ZOOM = new Data("_pan_zoom_", true, true)
+    static ROUTE = new Data("_route_", true, true, true)
 
     constructor(prefix: string, boat: boolean, race: boolean, compress: boolean = false) {
         this.prefix = prefix
@@ -59,9 +63,7 @@ export class Data {
             }
         }
 
-        console.log("value", value)
         let item = JSON.stringify(value, replacer)
-        console.log("item", item)
 
         if(this.compress) {
             item = compress(item)

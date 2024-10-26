@@ -17,7 +17,7 @@ export const useRacesStore = defineStore('races', () => {
     console.log(races)
     races.value.set(id, race)
     console.log(races)
-    Data.RACES.setItem(races)
+    Data.RACES.setItem(toRaw(races.value))
   }
 
   function list(): Array<Race> {
@@ -42,17 +42,18 @@ export const useRacesStore = defineStore('races', () => {
   }
 
   function save(race: Race) {
-    races.value.set(race.id, race)
-
-    Data.RACES.setItem(toRaw(races.value))
+    if (race.id && race.id !== "") {
+      races.value.set(race.id, race)
+      console.log(races.value)
+      Data.RACES.setItem(toRaw(races.value))
+    }
   }
 
-  function remove(race: Race) {
-    console.log("remove", race)
-    races.value.delete(race.id)
-    console.log("remove", race.id, races)
-
-    Data.RACES.setItem(races)
+  function remove(raceId: string) {
+    if (races.value.has(raceId)) {
+      races.value.delete(raceId)
+      Data.RACES.setItem(toRaw(races.value))
+    }
   }
 
   function get(id: string): Race | null {

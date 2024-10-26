@@ -24,7 +24,7 @@ new VConsole()
 import Home from './components/Home.vue'
 import Boats from './components/Boats.vue'
 import Polars from './components/Polars.vue'
-import Races from './components/Races.vue'
+import Races from './components/races/Races.vue'
 import Route from './components/Route.vue'
 
 const routes = [

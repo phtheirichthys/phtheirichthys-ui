@@ -7,13 +7,15 @@ import Graticule from './Graticule.vue'
 import Snake from './Snake.vue'
 import Race from './Race.vue'
 import Land from '../Land.vue'
+import Wind from '../Wind.vue'
 import Route from './Route.vue'
+import NavigationConfig from './NavigationConfig.vue'
 
-import { ref, onMounted, Ref, toRaw } from 'vue'
-import { Wind } from '../../lib/wind';
-import { BoatConfig, Point } from '../../lib/position';
-import type { RouteResult } from '@phtheirichthys/phtheirichthys/phtheirichthys'
-import { useRacesStore } from '../../stores/races'
+import { ref, onMounted, Ref, onBeforeMount } from 'vue'
+import { Wind as InstantWind } from '../../lib/wind';
+import { Point } from '../../lib/position';
+import { useRouteStore } from '../../stores/route'
+import { useNavigateStore } from '../../stores/navigate'
 import * as phtheirichthys from '../../lib/phtheirichthys'
 
 const props = defineProps<{
@@ -21,21 +23,38 @@ const props = defineProps<{
   race: string,
 }>()
 
-const racesStore = useRacesStore()
+const ready = ref(false)
 
-const routeResult: Ref<RouteResult | null> = ref(null)
+const navigateStore = useNavigateStore()
+const routeStore = useRouteStore()
 
-const boat: Ref<BoatConfig> = ref(new BoatConfig())
+// navigateStore.$onAction(({
+  // name, // name of the action
+  // after, // hook after the action returns or resolves
+// }) => {
+// })
+
+phtheirichthys.emitter.on('loaded', () => {
+  console.log("Phtheirichthys is ready !")
+  ready.value = true
+})
 
 const navigating = ref(false)
 
 var legend = ref(L.DomUtil.create("div"))
 
-const map = new L.Map("map", {zoomControl: true, worldCopyJump: false}).setView([0, 0], 4)
+const map = new L.Map("map", {zoomControl: true, worldCopyJump: false})
 const layerControl = L.control.layers()
 const landLayerControl = L.layerGroup()
+const windLayerControl = L.layerGroup()
 
-var wind: Ref<Wind | null> = ref(null)
+var wind: Ref<InstantWind | null> = ref(null)
+
+onBeforeMount(() => {
+  navigateStore.load(props.boat, props.race)
+
+  map.setView(navigateStore.panZoom.pan, navigateStore.panZoom.zoom)
+})
 
 onMounted(() => {
   map.whenReady(() => {
@@ -47,6 +66,7 @@ onMounted(() => {
     layerControl.addTo(map)
 
     layerControl.addOverlay(landLayerControl, "<i class='fas fa-globe-europe'></i> Land");
+    layerControl.addOverlay(windLayerControl, "<i class='fas fa-globe-europe'></i> Wind");
 
     let VelocityControl = L.Control.extend({
       onAdd: function() {
@@ -62,6 +82,13 @@ onMounted(() => {
     map.on("mousemove", (event) => {
       let latlng = map.containerPointToLatLng(L.point(event.containerPoint.x, event.containerPoint.y))
       onMouseMove(Point.fromLatLng(latlng))
+    })
+
+    map.on("zoomend", () => {
+      navigateStore.setPanZoom([map.getCenter().lat, map.getCenter().lng], map.getZoom())
+    })
+    map.on("moveend", () => {
+      navigateStore.setPanZoom([map.getCenter().lat, map.getCenter().lng], map.getZoom())
     })
 
     L.control.sidebar({
@@ -105,11 +132,11 @@ function displayLegend() {
 }
 
 function center() {
-  map.flyTo(boat.value.position.toLatLng())
+  map.flyTo(navigateStore.position.toLatLng())
 }
 
 function centerAndZoom() {
-  map.flyTo(boat.value.position.toLatLng(), map.getZoom() + 2)
+  map.flyTo(navigateStore.position.toLatLng(), map.getZoom() + 2)
 }
 
 function pan() {
@@ -117,15 +144,13 @@ function pan() {
 }
 
 function navigate() {
+  if (!ready.value) {
+    return
+  }
+
   navigating.value = true
 
-  let race = racesStore.get(props.race)!;
-  phtheirichthys.navigate(toRaw(race), toRaw(boat.value)).then((res) => {
-    console.log(routeResult)
-    routeResult.value = res
-  }).catch((e) => {
-    console.error(e)
-  }).finally(() => {
+  routeStore.navigate(props.race).finally(() => {
     navigating.value = false
   })
 }
@@ -141,11 +166,12 @@ function test_webgpu() {
 </script>
 
 <template>
-  <Boat :boat="boat" :layer="map" />
+  <Boat :layer="map" />
   <Graticule :layer="map" />
-  <Snake :map="map" :layer-control="layerControl" />
-  <Land :layer="landLayerControl" />
-  <Route v-if="routeResult" :layer="map" :route="routeResult" />
+  <Snake v-if="ready" :map="map" :layer-control="layerControl" />
+  <Land v-if="ready" :layer="landLayerControl" />
+  <Wind v-if="ready" :layer="windLayerControl" />
+  <Route :map="map" :layer-control="layerControl" />
 
   <div id="sidebar" class="leaflet-sidebar collapsed">
     <!-- Nav tabs -->
@@ -154,7 +180,7 @@ function test_webgpu() {
         <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
         <li><a role="tab" @click="center" @dblclick.stop="centerAndZoom"><i class="fa fa-dot-circle"></i></a></li>
         <li><a role="tab" @click="pan"><i class="fa fa-expand"></i></a></li>
-        <li><a @click="navigate" class="button" :class="{'is-loading':navigating}"><i class="fa-solid fa-fish"></i></a></li>
+        <li><a @click="navigate" class="button" :class="{'is-loading':navigating}" :disabled="!ready"><i class="fa-solid fa-fish"></i></a></li>
         <li><a @click="test_webgpu" class="button">WebGPU</a></li>
       </ul>
 
@@ -170,6 +196,7 @@ function test_webgpu() {
     <!-- Tab panes -->
     <div class="leaflet-sidebar-content">
       <div class="leaflet-sidebar-pane" id="home">
+        <NavigationConfig />
       </div>
       <div class="leaflet-sidebar-pane" id="polars">
       </div>

@@ -1,28 +1,42 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import L from 'leaflet'
 import 'leaflet-rotatedmarker'
-import { BoatConfig } from '../../lib/position';
+import { useNavigateStore } from '../../stores/navigate';
+import { Point } from '../../lib/position';
+import * as utils from '../../lib/utils'
+
+const navigateStore = useNavigateStore()
 
 var marker: L.Marker;
 
 const props = defineProps<{
   layer: L.Map | L.LayerGroup,
-  boat: BoatConfig
 }>()
 
 onMounted(() => {
   drawBoat()
 })
 
+watch([
+  () => navigateStore.settings.heading,
+  () => navigateStore.status.wind.direction,
+  () => navigateStore.position,
+  () => navigateStore.status.aground,
+], () => drawBoat()
+)
+
+const heading = computed(() => {
+  return utils.heading(navigateStore.settings.heading, navigateStore.status.wind.direction)
+})
 
 function drawBoat() {
   if (marker) {
     props.layer.removeLayer(marker)
   }
 
-  let className = 'leaflet-boat-icon small ' + (props.boat.type || 'normal')
-  if (props.boat.status.aground === true) {
+  let className = 'leaflet-boat-icon small ' + ('normal')
+  if (navigateStore.status.aground === true) {
     className += " aground"
   }
 
@@ -31,7 +45,11 @@ function drawBoat() {
     iconAnchor: [7, 27],
     className: className
   })
-  marker = new L.Marker([props.boat.position.lat, props.boat.position.lon], {icon: boatIcon/*, rotationAngle: boat.heading*/}).addTo(props.layer)
+  marker = new L.Marker([navigateStore.position.lat, navigateStore.position.lon], {icon: boatIcon, draggable: true, rotationAngle: heading.value})
+    .addTo(props.layer)
+    .on('dragend', function (event) {
+      navigateStore.setPosition(Point.fromLatLng(event.target.getLatLng()))
+    })
 }
 </script>
 

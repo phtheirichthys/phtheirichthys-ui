@@ -15,6 +15,10 @@ export class Point implements Coords {
   static fromLatLng(latLng: LatLng): Point {
     return new Point(latLng.lat, latLng.lng)
   }
+
+  static fromCoords(coords: Coords): Point {
+    return new Point(coords.lat, coords.lon)
+  }
   
   toLatLng(): LatLng {
     return {lat: this.lat, lng: this.lon}
