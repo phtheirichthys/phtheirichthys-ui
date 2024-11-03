@@ -34,7 +34,7 @@ const routeStore = useRouteStore()
 // }) => {
 // })
 
-phtheirichthys.emitter.on('loaded', () => {
+phtheirichthys.isLoaded().then(() => {
   console.log("Phtheirichthys is ready !")
   ready.value = true
 })
@@ -181,7 +181,8 @@ function test_webgpu() {
         <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
         <li><a role="tab" @click="center" @dblclick.stop="centerAndZoom"><i class="fa fa-dot-circle"></i></a></li>
         <li><a role="tab" @click="pan"><i class="fa fa-expand"></i></a></li>
-        <li><a @click="navigate" class="button" :class="{'is-loading':navigating}" :disabled="!ready"><i class="fa-solid fa-fish"></i></a></li>
+        <li v-if="!ready"><a class="button" disabled><i class="fa-solid fa-fish"></i></a></li>
+        <li v-if="ready"><a @click="navigate" class="button" :class="{'is-loading':navigating}"><i class="fa-solid fa-fish"></i></a></li>
         <li><a @click="test_webgpu" class="button">WebGPU</a></li>
       </ul>
 

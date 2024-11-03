@@ -10,7 +10,6 @@ import wasmUrl from '@phtheirichthys/phtheirichthys/phtheirichthys_bg.wasm?url'
 export const emitter = mitt<Events>()
 
 type Events = {
-  'loaded': undefined,
   'wind-provider-status': any,
   'navigation': any
 }
@@ -28,10 +27,6 @@ export function init() {
         const { type, data } = message.data
     
         switch (type) {
-        case "loaded":
-            console.log("Wasm loaded")
-            emitter.emit("loaded")
-            break
         case "wind-provider-status":
             emitter.emit(type, data)
             break
@@ -251,6 +246,32 @@ export async function status(options: phtheirichthys.BoatOptions,  position: Poi
             polar_id: "19",
             boat_options: options,
             request
+        }
+
+        worker.port.postMessage(message)
+    })
+}
+
+export async function isLoaded(): Promise<boolean> {
+
+    return new Promise<boolean>((resolve, reject) => {
+        const request_uuid = uuidv4()
+        const handler = (message: MessageEvent<any>) => {
+            const { type, uuid } = message.data
+
+            if (uuid === request_uuid) {
+                worker.port.removeEventListener("message", handler)
+                if (type === "is-loaded") {
+                    resolve(true)
+                } else {
+                    reject()
+                }
+            }
+        }
+        worker.port.addEventListener("message", handler)
+
+        const message = {
+            type: "is-loaded", uuid: request_uuid,
         }
 
         worker.port.postMessage(message)

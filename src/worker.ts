@@ -15,6 +15,7 @@ export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "status" } & { uuid: string, wind_provider: string, polar_id: string, boat_options: phtheirichthys.BoatOptions, request: phtheirichthys.RouteRequest } )
     | ({ type: "add-polar" } & { name: string, polar: phtheirichthys.Polar })
     | ({ type: "test-webgpu" } & { uuid: string })
+    | ({ type: "is-loaded" } & { uuid: string } )
 
 let wasmResolve: (value: any) => void;
 let wasmReady = new Promise((resolve) => {
@@ -43,9 +44,13 @@ self.onconnect = async (event) => {
                 //     wasmResolve(phtheirichthys)
                 // })
                 wasmResolve(phtheirichthys)
-                port.postMessage({type: "loaded"})
                 break
-
+            case "is-loaded":
+                wasmReady.then(() => {
+                    port.postMessage({type: "is-loaded", uuid: data.uuid})
+                })
+                break
+    
             case "add-wind-provider":
                 wasmReady.then((phtheirichthys: any) => phtheirichthys.add_wind_provider())
                 break
