@@ -160,7 +160,7 @@ function test_webgpu() {
   phtheirichthys.test_webgpu().then(() => {
     console.log("test ok")
   }).catch((e) => {
-    console.error(e)
+    console.error("Error testing GPU", e)
   })
 }
 

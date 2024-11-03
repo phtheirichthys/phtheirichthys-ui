@@ -117,7 +117,8 @@ export async function eval_snake(heading: phtheirichthys.Heading) {
                 if (type === "snake") {
                     resolve(data)
                 } else {
-                    reject(data)
+                    const { error } = message.data
+                    reject(error)
                 }
             }
         }
@@ -162,7 +163,8 @@ export async function test_webgpu() {
             if (type === "test-webgpu") {
                 resolve(data)
             } else {
-                reject(data)
+                const { error } = message.data
+                reject(error)
             }
         }
         }
@@ -194,7 +196,8 @@ export async function navigate(race: phtheirichthys.Race, options: phtheirichthy
             if (type === "navigation") {
                 resolve(data)
             } else {
-                reject(data)
+                const { error } = message.data
+                reject(error)
             }
         }
         }
@@ -234,7 +237,8 @@ export async function status(options: phtheirichthys.BoatOptions,  position: Poi
                 if (type === "status") {
                     resolve(data)
                 } else {
-                    reject(data)
+                    const { error } = message.data
+                    reject(error)
                 }
             }
         }

@@ -102,7 +102,7 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "snake", uuid: data.uuid, data: res})
                     } catch(e) {
                         console.error("Error evaluating snake", e)
-                        port.postMessage({type: "error", uuid: data.uuid, error: e})
+                        port.postMessage({type: "error", uuid: data.uuid, error: e, message: "Error evaluating snake"})
                     }
                 })
                 break
@@ -116,7 +116,7 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "navigation", uuid: data.uuid, data: res})
                     }).catch((e: any) => {
                         console.error("Error evaluating navigate", e)
-                        port.postMessage({type: "error", uuid: data.uuid, error: e})
+                        port.postMessage({type: "error", uuid: data.uuid, error: e, message: "Error evaluating navigate"})
                     })
                 })
                 break
@@ -127,7 +127,7 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "status", uuid: data.uuid, data: res})
                     }).catch((e: any) => {
                         console.error("Error evaluating status", e)
-                        port.postMessage({type: "error", uuid: data.uuid, error: e})
+                        port.postMessage({type: "error", uuid: data.uuid, error: e, message: "Error evaluating status"})
                     })
                 })
                 break

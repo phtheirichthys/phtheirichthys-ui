@@ -28,7 +28,7 @@ export const useRouteStore = defineStore('route', () => {
       route.value = res
       Data.ROUTE.setItem(res, navigateStore.context!)
     }).catch((e) => {
-      console.error(e)
+      console.error("Error navigating", e)
     })
   }
 
