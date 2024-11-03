@@ -6,6 +6,7 @@ import { useRacesStore } from '../../stores/races'
 import { usePolarsStore } from '../../stores/polars'
 import Buoy from '../Buoy.vue'
 import Start from './Start.vue'
+import draggable from 'vuedraggable'
 
 const racesStore = useRacesStore()
 
@@ -81,6 +82,12 @@ function change(index: number, buoy: IBuoy) {
   //racesStore.save(toRaw(race.value))
 }
 
+function deleteBuoy(index: number) {
+  console.log("buoy deleted", index, race.value)
+  console.log("before", race.value.buoys)
+  race.value.buoys.splice(index, 1)
+  console.log("after", race.value.buoys)
+}
 </script>
 
 <template>
@@ -198,11 +205,11 @@ function change(index: number, buoy: IBuoy) {
 
         <Start :class="{draggable: edit}" :startInit="race.start" :edit="edit" :layer="layer" @change="(position) => race.start = position"></Start>
 
-        <!-- <draggable v-model="race.buoys" draggable=".draggable"> -->
-            <!-- <template #item="{element}"> -->
-            <Buoy :class="{draggable: edit}" v-for="(buoy, index) in race.buoys" :key="index" :buoy="buoy" :edit="edit" :layer="layer" @validate="validate(buoy)" @change="(buoy) => change(index, buoy)"></Buoy>
-            <!-- </template> -->
-        <!-- </draggable> -->
+        <draggable :list="race.buoys" draggable=".draggable" :item-key="(element: IBuoy, index: number) => raceId + index + element.name">
+          <template #item="{ element: buoy, index }">
+            <Buoy :class="{draggable: edit}" :buoy="buoy" :edit="edit" :layer="layer" @validate="validate(buoy)" @change="(buoy) => change(index, buoy)" @delete="() => deleteBuoy(index)"></Buoy>
+          </template>
+        </draggable>
 
         </div>
         <div class="column is-half">

@@ -11,9 +11,10 @@ const props = defineProps<{
   layer: L.LayerGroup,
 }>()
 
-const emit = defineEmits(['validate', 'change'])
+const emit = defineEmits(['validate', 'change', 'delete'])
 
 const buoy = ref(props.buoy)
+const name = ref(buoy.value.name)
 const type = ref(buoy.value.type)
 
 const markers = ref(new Array<L.Layer>())
@@ -218,7 +219,7 @@ function drawBuoy() {
       }).addTo(props.layer)
     markers.value.push(m2)
 
-    var destination = L.marker([buoy.value.destination.lat, buoy.value.destination.lon + wrap], {icon:markerIconPort, draggable: props.edit, zIndexOffset: 5000})
+    var destination = L.marker([buoy.value.destination.lat, buoy.value.destination.lon + wrap], {icon:markerIconPort, draggable: props.edit, zIndexOffset: 4999})
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
         let door = buoy.value as Door
@@ -227,7 +228,7 @@ function drawBuoy() {
       }).addTo(props.layer)
     markers.value.push(destination)
 
-    var departure = L.marker([buoy.value.departure.lat, buoy.value.departure.lon + wrap], {icon: markerIconStarboard, draggable: props.edit, zIndexOffset: 5000})
+    var departure = L.marker([buoy.value.departure.lat, buoy.value.departure.lon + wrap], {icon: markerIconStarboard, draggable: props.edit, zIndexOffset: 4999})
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
         let door = buoy.value as Door
@@ -290,12 +291,12 @@ function computeDestinationAndDeparture(port: Coords, starboard: Coords): {desti
             </div>
             <div class="column">
               <div v-if="!edit" class="title is-4">{{ buoy.name }}</div>
-              <input v-if="edit" v-model="buoy.name" class="input is-small" type="text">
+              <input v-if="edit" v-model="name" class="input is-small" type="text" @change="() => buoy.name = name">
             </div>
           </div>
         </div>
         <div class="media-right">
-          <button v-show="edit" class="button is-small is-white">
+          <button v-show="edit" class="button is-small is-white" @click="emit('delete')">
             <span class="icon is-small">
               <i class="fas fa-trash"></i>
             </span>
