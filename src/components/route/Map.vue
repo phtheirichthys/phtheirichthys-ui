@@ -201,7 +201,7 @@ function test_webgpu() {
       <div class="leaflet-sidebar-pane" id="polars">
       </div>
       <div class="leaflet-sidebar-pane" id="race">
-        <Race :layer="map" :raceId="props.race" />
+        <Race :layer="map" :raceId="props.race" :edit="false" />
       </div>
     </div>  
   </div>

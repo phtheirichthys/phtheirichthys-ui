@@ -163,10 +163,7 @@ function drawBuoy() {
 
     var endM = L.marker([buoy.value.destination.lat, buoy.value.destination.lon + wrap], {icon: markerIcon, draggable: props.edit})
       .on('click', () => {
-        console.log("click", buoy.value.validated)
-        buoy.value.validated = !buoy.value.validated
         emit('validate')
-        console.log("click", buoy.value.validated)
       })
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
@@ -181,6 +178,9 @@ function drawBuoy() {
   } else if(buoy.value.type === "Waypoint") {
 
     var m1 = L.marker([buoy.value.destination.lat, buoy.value.destination.lon + wrap], {icon: markerIcon, draggable: props.edit, zIndexOffset: 5000})
+      .on('click', () => {
+        emit('validate')
+      })
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
 
@@ -194,6 +194,9 @@ function drawBuoy() {
     markers.value.push(line)
 
     var m1 = L.marker([buoy.value.port.lat, buoy.value.port.lon + wrap], {icon: markerIconPort, draggable: props.edit, zIndexOffset: 5000})
+      .on('click', () => {
+        emit('validate')
+      })
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
         let door = buoy.value as Door
@@ -207,6 +210,9 @@ function drawBuoy() {
     markers.value.push(m1)
 
     var m2 = L.marker([buoy.value.starboard.lat, buoy.value.starboard.lon + wrap], {icon: markerIconStarboard, draggable: props.edit, zIndexOffset: 5000})
+      .on('click', () => {
+        emit('validate')
+      })
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
         let door = buoy.value as Door

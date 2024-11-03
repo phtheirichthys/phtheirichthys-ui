@@ -71,9 +71,11 @@ function save() {
 }
 
 function validate(buoy: IBuoy) {
-  console.log("validate", buoy.validated)
+  if (edit.value === true) {
+    return
+  }
   buoy.validated = !buoy.validated
-  console.log("validate", buoy.validated)
+  save()
 }
 
 function change(index: number, buoy: IBuoy) {
