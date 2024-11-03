@@ -52,6 +52,7 @@ var wind: Ref<InstantWind | null> = ref(null)
 
 onBeforeMount(() => {
   navigateStore.load(props.boat, props.race)
+  routeStore.load()
 
   map.setView(navigateStore.panZoom.pan, navigateStore.panZoom.zoom)
 })
@@ -188,8 +189,7 @@ function test_webgpu() {
         <li><a href="#table" role="tab"><i class="fa fa-table"></i></a></li>
         <li class="bottom"><a href="#polars" role="tab"><i class="fas fa-chart-area"></i></a></li>
         <li class="bottom"><a href="#race" role="tab"><i class="fas fa-map-marked"></i></a></li>
-        <li class="bottom"><a href="#boats" role="tab"><i class="fa fa-ship"></i></a></li>
-        <li class="bottom"><a href="#settings" role="tab"><i class="fas fa-cog"></i></a></li>
+        <li class="bottom"><RouterLink to="/"><i class="fas fa-home"></i></RouterLink></li>
       </ul>
     </div>
 

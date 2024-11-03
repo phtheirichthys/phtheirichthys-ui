@@ -13,17 +13,10 @@ export const useRouteStore = defineStore('route', () => {
   const navigateStore = useNavigateStore()
   const racesStore = useRacesStore()
 
-  navigateStore.$onAction(({name, after}) => {
-    if (name === "load") {
-      after(() => {
-        load()
-      })
-    }  
-  })
-
   const route: Ref<RouteResult | null> = ref(null)
 
   async function load() {
+    console.log("load route")
     route.value = Data.ROUTE.getItem(navigateStore.context!)
   }
 
@@ -33,7 +26,7 @@ export const useRouteStore = defineStore('route', () => {
       toRaw(navigateStore.position), toRaw(navigateStore.settings),
       toRaw(navigateStore.status),).then((res) => {
       route.value = res
-      Data.ROUTE.setItem(navigateStore.context!)
+      Data.ROUTE.setItem(res, navigateStore.context!)
     }).catch((e) => {
       console.error(e)
     })
@@ -42,5 +35,6 @@ export const useRouteStore = defineStore('route', () => {
   return {
     route,
     navigate,
+    load,
   }
 })

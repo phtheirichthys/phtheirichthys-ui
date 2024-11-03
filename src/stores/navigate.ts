@@ -4,6 +4,7 @@ import { Context, Data } from "../lib/data"
 import { Point } from "../lib/position"
 import { BoatOptions, BoatSettings } from "@phtheirichthys/phtheirichthys"
 import { useRacesStore } from "./races"
+import { useBoatsStore } from "./boats"
 
 export interface BoatStatus {
   position: Point
@@ -19,10 +20,13 @@ interface PanZoom {
 export const useNavigateStore = defineStore('navigate', () => {
 
   const racesStore = useRacesStore()
+  const boatsStore = useBoatsStore()
 
   console.log("Load Navigate Store")
 
   const context: Ref<Context | null> = ref(null)
+
+  const title = ref("")
 
   const options = ref({
     lt: false,
@@ -57,7 +61,6 @@ export const useNavigateStore = defineStore('navigate', () => {
     stamina: 0,
   })
 
-
   const panZoom: Ref<PanZoom> = ref({
     pan: [0, 0],
     zoom: 4
@@ -69,6 +72,13 @@ export const useNavigateStore = defineStore('navigate', () => {
       boat: boatId,
       race: raceId
     }
+
+    if (boatsStore.boats.get(boatId)) {
+      title.value = boatsStore.boats.get(boatId)?.name + " - "
+    } else {
+      title.value = ""
+    }
+    title.value += racesStore.races.get(raceId)?.name
 
     const race = racesStore.get(raceId)
 
@@ -122,6 +132,7 @@ export const useNavigateStore = defineStore('navigate', () => {
 
   return {
     context,
+    title,
     load,
     options,
     position,

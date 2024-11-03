@@ -2,14 +2,13 @@
 import { computed, ref, Ref } from 'vue'
 import Navbar from '../Navbar.vue'
 import { useRacesStore } from '../../stores/races'
-import type { Race as IRace } from '@phtheirichthys/phtheirichthys/phtheirichthys'
 import Race from './Race.vue'
 //import draggable from 'vuedraggable'
 
 const racesStore = useRacesStore()
 
 //const races = ref(racesStore.list())
-const selectedRace: Ref<IRace | null> = ref(null)
+const selectedRace: Ref<string | null> = ref(null)
 
 const importIsActive = ref(false)
 const importText = ref("")
@@ -32,24 +31,25 @@ function importRace() {
 }
 
 function addRace() {
-  console.log(races.value)
-  let newRace = racesStore.newRace()
-  select(newRace)
+  console.log("Add Race")
+  select("")
 }
 
-function select(race: IRace) {
-  selectedRace.value = race
+function select(raceId: string | null) {
+  console.log("Select Race", raceId)
+  selectedRace.value = raceId
 }
 
 function remove(raceId: string) {
   racesStore.remove(raceId)
-  console.log("remove race", selectedRace.value?.id, raceId)
-  if (selectedRace.value?.id === raceId) {
+  console.log("remove race", selectedRace.value, raceId)
+  if (selectedRace.value === raceId) {
     selectedRace.value = null
   }
 }
 
 const races = computed(() => {
+  console.log("Recompute list")
   return Array.from(racesStore.races).map(([, race]) => (race))
 })
 /*function moveBuoy(event: any) {
@@ -79,7 +79,7 @@ const races = computed(() => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="race in races" @click="select(race)">
+                <tr v-for="race in races" @click="select(race.id)" :class="{'is-selected': selectedRace === race.id}">
                   <td>{{ race.name }}</td>
                   <td>
                     <button class="button is-small is-white" @click="remove(race.id)">
@@ -102,8 +102,8 @@ const races = computed(() => {
           </div>
         </div>
       </div>
-      <div v-if="selectedRace" class="container">
-        <Race :raceInit="selectedRace" />
+      <div v-if="selectedRace !== null" class="container">
+        <Race :raceId="selectedRace" @save="(raceId) => select(raceId)" />
       </div>
     </div>
   </section>

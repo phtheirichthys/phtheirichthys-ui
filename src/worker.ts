@@ -12,6 +12,7 @@ export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "draw-wind" } & { canvas: OffscreenCanvas, provider: string, moment: Date, coords: { x: number, y: number, z: number }, size: { width: number, height: number } })
     | ({ type: "eval-snake" } & { uuid: string, route_request: phtheirichthys.RouteRequest, params: phtheirichthys.SnakeParams, heading: phtheirichthys.Heading })
     | ({ type: "navigate" } & { uuid: string, wind_provider: string, polar_id: string, race: phtheirichthys.Race, boat_options: phtheirichthys.BoatOptions, request: phtheirichthys.RouteRequest } )
+    | ({ type: "status" } & { uuid: string, wind_provider: string, polar_id: string, boat_options: phtheirichthys.BoatOptions, request: phtheirichthys.RouteRequest } )
     | ({ type: "add-polar" } & { name: string, polar: phtheirichthys.Polar })
     | ({ type: "test-webgpu" } & { uuid: string })
 
@@ -109,7 +110,18 @@ self.onconnect = async (event) => {
                     phtheirichthys.navigate(data.wind_provider, data.polar_id, data.race, data.boat_options, data.request).then((res: any) => {
                         port.postMessage({type: "navigation", uuid: data.uuid, data: res})
                     }).catch((e: any) => {
-                        console.error("Error evaluating snake", e)
+                        console.error("Error evaluating navigate", e)
+                        port.postMessage({type: "error", uuid: data.uuid, error: e})
+                    })
+                })
+                break
+            case "status":
+                wasmReady.then((phtheirichthys: any) => {
+                    console.log("Worker", "Status", data)
+                    phtheirichthys.status(data.wind_provider, data.polar_id, data.boat_options, data.request).then((res: any) => {
+                        port.postMessage({type: "status", uuid: data.uuid, data: res})
+                    }).catch((e: any) => {
+                        console.error("Error evaluating status", e)
                         port.postMessage({type: "error", uuid: data.uuid, error: e})
                     })
                 })

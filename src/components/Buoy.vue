@@ -48,9 +48,12 @@ function coord(coords: Coords) {
 function reverse() {
   let door = buoy.value as Door
   
-  let starboard = door.starboard
+  const starboard = door.starboard
   door.starboard = door.port
   door.port = starboard
+  const destination = door.destination
+  door.destination = door.departure
+  door.departure = destination
 }
 
 function changeType() {
@@ -137,6 +140,7 @@ function changeType() {
       }
       break
   }
+  emit('change', toRaw(buoy.value))
 }
 
 function redraw() {
@@ -167,7 +171,7 @@ function drawBuoy() {
         var latlng = event.target.getLatLng();
 
         buoy.value.destination = {lat: latlng.lat, lon: latlng.lng}
-        emit('change', toRaw(buoy))
+        emit('change', toRaw(buoy.value))
       }).addTo(props.layer)
     markers.value.push(endM)
     var zone = L.circle(L.latLng(buoy.value.destination.lat, buoy.value.destination.lon + wrap), {radius: buoy.value.radius * 1852, color: "red", weight: 2, dashArray: [5, 8]}).addTo(props.layer);
@@ -180,7 +184,7 @@ function drawBuoy() {
         var latlng = event.target.getLatLng();
 
         buoy.value.destination = {lat: latlng.lat, lon: latlng.lng}
-        emit('change', toRaw(buoy))
+        emit('change', toRaw(buoy.value))
       }).addTo(props.layer)
     markers.value.push(m1)
 
@@ -194,7 +198,10 @@ function drawBuoy() {
         let door = buoy.value as Door
         door.port = {lat: latlng.lat, lon: latlng.lng}
         line.setLatLngs([[door.port.lat, door.port.lon + wrap], [door.starboard.lat, door.starboard.lon + wrap]])
-        emit('change', toRaw(buoy))
+        let dAndD = computeDestinationAndDeparture(door.port, door.starboard)
+        door.destination = dAndD.destination
+        door.departure = dAndD.departure
+        emit('change', toRaw(buoy.value))
       }).addTo(props.layer)
     markers.value.push(m1)
 
@@ -204,9 +211,30 @@ function drawBuoy() {
         let door = buoy.value as Door
         door.starboard = {lat: latlng.lat, lon: latlng.lng}
         line.setLatLngs([[door.port.lat, door.port.lon + wrap], [door.starboard.lat, door.starboard.lon + wrap]])
-        emit('change', toRaw(buoy))
+        let dAndD = computeDestinationAndDeparture(door.port, door.starboard)
+        door.destination = dAndD.destination
+        door.departure = dAndD.departure
+        emit('change', toRaw(buoy.value))
       }).addTo(props.layer)
     markers.value.push(m2)
+
+    var destination = L.marker([buoy.value.destination.lat, buoy.value.destination.lon + wrap], {icon:markerIconPort, draggable: props.edit, zIndexOffset: 5000})
+      .on('dragend', function(event) {
+        var latlng = event.target.getLatLng();
+        let door = buoy.value as Door
+        door.destination = {lat: latlng.lat, lon: latlng.lng}
+        emit('change', toRaw(buoy.value))
+      }).addTo(props.layer)
+    markers.value.push(destination)
+
+    var departure = L.marker([buoy.value.departure.lat, buoy.value.departure.lon + wrap], {icon: markerIconStarboard, draggable: props.edit, zIndexOffset: 5000})
+      .on('dragend', function(event) {
+        var latlng = event.target.getLatLng();
+        let door = buoy.value as Door
+        door.departure = {lat: latlng.lat, lon: latlng.lng}
+        emit('change', toRaw(buoy.value))
+      }).addTo(props.layer)
+    markers.value.push(departure)
   }  
 }
 
@@ -219,15 +247,33 @@ watch([buoy, () => props.edit], () => {
 },
 { deep: true })
 
+function computeDestinationAndDeparture(port: Coords, starboard: Coords): {destination: Coords, departure: Coords} {
+  const center = {
+    lat: (port.lat + starboard.lat) / 2,
+    lon: (port.lon + starboard.lon) / 2
+  }
+
+  const departure = {
+    lat: -(starboard.lon - center.lon) + center.lat,
+    lon: (starboard.lat - center.lat) + center.lon
+  }
+
+  const destination = {
+    lat: -(port.lon - center.lon) + center.lat,
+    lon: (port.lat - center.lat) + center.lon
+  }
+
+  return {destination: destination, departure: departure}
+}
 </script>
 
 <template>
   <div class="card mb-3">
-    <!-- <div v-show="edit" class="dragger has-text-grey-lighter">
+    <div v-show="edit" class="dragger has-text-grey-lighter">
       <span class="icon">
         <i class="fas fa-grip-vertical"></i>
       </span>
-    </div> -->
+    </div>
     <div class="card-content p-2" :class="{'with-dragger': edit}">
       <div class="media mb-1">
         <div class="media-content">
@@ -270,8 +316,10 @@ watch([buoy, () => props.edit], () => {
 
             <div v-if="buoy.type === 'Zone'">
               <div>
-                <span class="icon-text" :class="colorClassLeft"><span class="icon"><i class="fas fa-square-full" :class="{'start': edit, 'waypoint': !edit}"></i></span>
-                <span>{{ coord(buoy.destination) }}</span></span>
+                <span class="icon-text" :class="colorClassLeft">
+                  <span class="icon"><i class="fas fa-square-full" :class="{'start': edit, 'waypoint': !edit}"></i></span>
+                  <span>{{ coord(buoy.destination) }}</span>
+                </span>
               </div>
               <span class="icon-text">
                 <span class="icon">

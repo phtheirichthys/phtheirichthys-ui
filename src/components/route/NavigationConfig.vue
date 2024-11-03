@@ -9,8 +9,8 @@ const navigateStore = useNavigateStore()
 const options = ref(toRaw(navigateStore.options))
 const position = ref(toRaw(navigateStore.position))
 const settings = ref(toRaw(navigateStore.settings))
-const heading = ref(utils.heading(settings.value.heading, navigateStore.status.wind.direction))
 const twa = ref('twa' in settings.value.heading)
+const heading = ref(twa.value ? utils.twa(settings.value.heading, navigateStore.status.wind.direction) : utils.heading(settings.value.heading, navigateStore.status.wind.direction))
 
 const pasteStatus: Ref<{latitude: -1|0|1, longitude: -1|0|1, heading: -1|0|1}> = ref({
   latitude: 0,
@@ -19,8 +19,12 @@ const pasteStatus: Ref<{latitude: -1|0|1, longitude: -1|0|1, heading: -1|0|1}> =
 })
 
 watch([() => settings.value.heading, () => navigateStore.status.wind.direction], ([h, twd]) => {
-  heading.value = utils.heading(h, twd)
   twa.value = 'twa' in settings.value.heading
+  if (twa.value) {
+    heading.value = utils.twa(h, twd)
+  } else {
+    heading.value = utils.heading(h, twd)
+  }
 })
 
 watch(() => navigateStore.position, (p) => {
@@ -35,8 +39,18 @@ function change(type: "latitude" | "longitude", value: number) {
   }
 }
 
+function wrap(value: number) {
+  while (position.value.lon <= -180) {
+    position.value.lon += 360
+  }
+  while (position.value.lon > 180) {
+    position.value.lon -= 360
+  }
+  position.value.lon += 360 * value
+  console.log("<", position.value.lon)
+}
+
 function save() {
-  console.log(settings.value.heading)
   if (twa.value === true) {
     settings.value.heading = {twa: heading.value}
   } else {
@@ -63,7 +77,7 @@ function setTwa(t: boolean) {
 
 <template>
   <h1 class="leaflet-sidebar-header">
-    Titre
+    {{ navigateStore.title }}
     <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div>
   </h1>
   <section class="section">
@@ -72,14 +86,14 @@ function setTwa(t: boolean) {
         <label class="label">Cap</label>
         <div class="field has-addons">
           <p class="control">
+            <button v-if="twa" class="button is-small" @click="setTwa(false)"><span class="icon is-small"><i class="fas fa-wind"></i></span></button>
+            <button v-else class="button is-small" @click="setTwa(true)"><span class="icon is-small"><i class="far fa-compass"></i></span></button>
+          </p>
+          <p class="control">
             <input v-model.number="heading" class="input is-small" :class="{'is-success': pasteStatus.heading === 1, 'is-danger': pasteStatus.heading === -1}" type="text" placeholder="41" style="width:60px">
           </p>
           <p class="control">
             <a class="button is-static is-small">°</a>
-          </p>
-          <p class="control">
-            <button v-if="twa" class="button is-small" @click="setTwa(false)"><span class="icon is-small"><i class="fas fa-wind"></i></span></button>
-            <button v-else class="button is-small" @click="setTwa(true)"><span class="icon is-small"><i class="far fa-compass"></i></span></button>
           </p>
         </div>
       </div>
@@ -115,7 +129,7 @@ function setTwa(t: boolean) {
     <label class="label">Latitude</label>
     <Dms :dd="position.lat" :pasteStatus="pasteStatus.latitude" type="latitude" @change='(lat) => change("latitude", lat)' />
     <label class="label">Longitude</label>
-    <Dms :dd="position.lon" :pasteStatus="pasteStatus.longitude" type="longitude" @change='(lon) => change("longitude", lon)' />
+    <Dms :dd="position.lon" :pasteStatus="pasteStatus.longitude" type="longitude" @change='(lon) => change("longitude", lon)' @wrap="wrap" />
     <label class="label">Options</label>
     <div class="columns is-gapless is-multiline is-mobile">
       <div class="column is-one-third">
@@ -203,6 +217,93 @@ function setTwa(t: boolean) {
   </section>
 </template>
 
-<style>
+<style scoped>
+@media (max-height: 460px) {
+  .bottom {
+    visibility: hidden;
+    height: 0px;
+  }
+}
 
+@media (min-width: 768px) {
+  .leaflet-sidebar-left ~ .notification {
+    transition: left 500ms;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .leaflet-sidebar-left.extended ~ .leaflet-control-container .leaflet-left {
+    left: 400px;
+  }
+  .leaflet-sidebar-left.extended ~ .notification {
+    left: 456px;
+  }
+  .leaflet-sidebar-left ~ .notification {
+    left: 371px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .leaflet-sidebar-left.extended ~ .leaflet-control-container .leaflet-left {
+    left: 600px;
+  }
+  .leaflet-sidebar-left.extended ~ .notification {
+    left: 656px;
+  }
+  .leaflet-sidebar-left ~ .notification {
+    left: 456px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .leaflet-sidebar-left.extended ~ .leaflet-control-container .leaflet-left {
+    left: 900px;
+  }
+  .leaflet-sidebar-left.extended ~ .notification {
+    left: 956px;
+  }
+  .leaflet-sidebar-left ~ .notification {
+    left: 556px;
+  }
+}
+
+.leaflet-sidebar-left.collapsed ~ .notification {
+  left: 106px;
+}
+
+@media (min-width: 768px) {
+  .leaflet-sidebar.extended {
+    top: 10px;
+    bottom: 10px;
+    transition: width 500ms; } }
+@media (min-width: 768px) and (max-width: 991px) {
+  .leaflet-sidebar.extended {
+    width: 390px;
+    max-width: 390px; } }
+@media (min-width: 992px) and (max-width: 1199px) {
+  .leaflet-sidebar.extended {
+    width: 590px;
+    max-width: 590px; } }
+@media (min-width: 1200px) {
+  .leaflet-sidebar.extended {
+    width: 890px;
+    max-width: 890px; } }
+
+.leaflet-sidebar-tabs .button {
+  padding: 0px;
+  border: 0px;
+}
+
+.leaflet-sidebar-pane .section {
+  padding: 10px 0px 0px;
+}
+
+.leaflet-control-scale.leaflet-control {
+  margin-left: 25px;
+}
+
+.leaflet-sidebar-tabs > li.active, .leaflet-sidebar-tabs > ul > li.on,
+.leaflet-sidebar-tabs > li.active, .leaflet-sidebar-tabs > ul > li.on:hover {
+  color: #0074d9;
+}
 </style>

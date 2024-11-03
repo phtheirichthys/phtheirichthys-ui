@@ -22,7 +22,7 @@ routeStore.$onAction(({
   after, // hook after the action returns or resolves
   onError, // hook if the action throws or rejects
 }) => {
-  if (name === "navigate") {
+  if (name === "navigate" || name === "load") {
     // a shared variable for this specific action call
     const startTime = Date.now()
     // this will trigger before an action on `store` is executed

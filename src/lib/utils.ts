@@ -5,7 +5,7 @@ export type SpeedUnit = "Knot" | "MeterPerSecond" | "KiloMeterPerHour"
 export type Speed = number
 
 export function dms2dd(dms: {p: number, d: number, m: number, s: number, wrap: number}) {
-  var res = dms.p * dms.d + dms.m/60 + dms.s/3600
+  var res = dms.p * (dms.d + dms.m/60 + dms.s/3600)
   res += 360 * dms.wrap
   return res
 }
@@ -15,7 +15,7 @@ export function dd2dms(D: number): any {
     wrap: 0
   }
 
-  while (D > 180) {
+  while (D >= 180) {
     res.wrap += 1
     D -= 360
   }

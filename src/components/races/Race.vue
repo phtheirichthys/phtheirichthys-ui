@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref, Ref, toRaw, onMounted } from 'vue';
+import { defineProps, ref, Ref, toRaw, onMounted, watch } from 'vue';
 import L from 'leaflet';
 import { Race, Buoy as IBuoy } from '@phtheirichthys/phtheirichthys'
 import { useRacesStore } from '../../stores/races'
@@ -9,20 +9,24 @@ import Start from './Start.vue'
 
 const racesStore = useRacesStore()
 
-const { raceInit } = defineProps<{
-    raceInit: Race,
+const props = defineProps<{
+    raceId: string,
 }>()
 
-const race: Ref<Race> = ref(JSON.parse(JSON.stringify(toRaw(raceInit))))
+const emit = defineEmits(['save'])
+
+const race: Ref<Race> = ref(JSON.parse(JSON.stringify(toRaw(racesStore.get(props.raceId) || racesStore.newRace()))))
 
 const polarsStore = usePolarsStore()
-const edit = ref(raceInit.id === "")
+const edit = ref(props.raceId === "")
 
 const layer = L.layerGroup()
 
-// watch(() => raceInit, () => {
-//   race.value = JSON.parse(JSON.stringify(toRaw(raceInit)))
-// })
+watch(() => props.raceId, () => {
+  console.log("Race Id changed", props.raceId)
+  race.value = JSON.parse(JSON.stringify(toRaw(racesStore.get(props.raceId) || racesStore.newRace())))
+  edit.value = props.raceId === ""
+})
 
 onMounted(() => {
   const map = new L.Map("map", {zoomControl: true, attributionControl: false, worldCopyJump: false}).setView([0, 0], 4)
@@ -33,7 +37,7 @@ onMounted(() => {
 })
 
 function reset() {
-  race.value = JSON.parse(JSON.stringify(toRaw(raceInit)))
+  race.value = JSON.parse(JSON.stringify(toRaw(racesStore.get(props.raceId) || racesStore.newRace())))
 }
 
 function add() {
@@ -47,9 +51,13 @@ function add() {
 }
 
 function changeName() {
-  console.log("change", raceInit.id)
-  if (raceInit.id === "") {
-    race.value.id = race.value.name.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()
+  if (props.raceId === "") {
+    race.value.id = race.value.name
+      .toLowerCase()
+      .replace(/[éèê]/g, "e")
+      .replace(/[àâ]/g, "a")
+      .replace(/[îï]/g, "i")
+      .replace(/[^a-z0-9]/g, "-")
   }
 }
 
@@ -57,6 +65,8 @@ function save() {
   edit.value = false
   console.log(race.value)
   racesStore.save(toRaw(race.value!))
+  
+  emit('save', race.value.id)
 }
 
 function validate(buoy: IBuoy) {
@@ -66,6 +76,7 @@ function validate(buoy: IBuoy) {
 }
 
 function change(index: number, buoy: IBuoy) {
+  console.log("buoy changed", index, buoy)
   race.value.buoys[index] = buoy
   //racesStore.save(toRaw(race.value))
 }

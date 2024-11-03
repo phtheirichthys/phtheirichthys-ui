@@ -219,3 +219,40 @@ export async function navigate(race: phtheirichthys.Race, options: phtheirichthy
         worker.port.postMessage(message)
     })
 }
+
+export async function status(options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings): Promise<phtheirichthys.BoatStatus> {
+
+    console.log("navigate : ", options, position, settings, status)
+
+    let request = {
+        from: position,
+        boat_settings: settings,
+    }
+
+    return new Promise<phtheirichthys.BoatStatus>((resolve, reject) => {
+        const request_uuid = uuidv4()
+        const handler = (message: MessageEvent<any>) => {
+            const { type, uuid, data } = message.data
+
+            if (uuid === request_uuid) {
+                worker.port.removeEventListener("message", handler)
+                if (type === "status") {
+                    resolve(data)
+                } else {
+                    reject(data)
+                }
+            }
+        }
+        worker.port.addEventListener("message", handler)
+
+        const message = {
+            type: "status", uuid: request_uuid,
+            wind_provider: WindService.get_provider(),
+            polar_id: "19",
+            boat_options: options,
+            request
+        }
+
+        worker.port.postMessage(message)
+    })
+}

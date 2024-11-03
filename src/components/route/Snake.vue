@@ -4,11 +4,14 @@ import { Point } from '../../lib/position'
 import * as phtheirichthys from '../../lib/phtheirichthys'
 import { onMounted } from 'vue'
 import L from 'leaflet'
+import { useNavigateStore } from '../../stores/navigate';
 
 const props = defineProps<{
   map: L.Map,
   layerControl: L.Control.Layers
 }>()
+
+const navigateStore = useNavigateStore()
 
 const layer = new L.LayerGroup()
 //const markerLayer = L.layerGroup().addTo(layer)
@@ -32,7 +35,7 @@ onMounted(() => {
   props.map.on("mousemove", (event) => {
     let latlng = props.map.containerPointToLatLng(L.point(event.containerPoint.x, event.containerPoint.y))
     
-    const position = new Point(0, 0)
+    const position = navigateStore.position
 
     let b = Math.round(bearingTo(position, Point.fromLatLng(latlng)))
     if(b == 360) b = 0
