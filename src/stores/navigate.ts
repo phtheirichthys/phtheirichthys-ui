@@ -2,15 +2,10 @@ import { defineStore } from "pinia"
 import { Ref, ref, toRaw } from "vue"
 import { Context, Data } from "../lib/data"
 import { Point } from "../lib/position"
-import { BoatOptions, BoatSettings } from "@phtheirichthys/phtheirichthys"
+import { BoatOptions, BoatSettings, BoatStatus } from "@phtheirichthys/phtheirichthys"
 import { useRacesStore } from "./races"
 import { useBoatsStore } from "./boats"
-
-export interface BoatStatus {
-  position: Point
-  settings: BoatSettings
-  options: BoatOptions
-}
+import * as phtheirichthys from '../lib/phtheirichthys'
 
 interface PanZoom {
   pan: [number, number],
@@ -25,6 +20,8 @@ export const useNavigateStore = defineStore('navigate', () => {
   console.log("Load Navigate Store")
 
   const context: Ref<Context | null> = ref(null)
+
+  const polarId: Ref<string | null> = ref(null) 
 
   const title = ref("")
 
@@ -48,7 +45,7 @@ export const useNavigateStore = defineStore('navigate', () => {
     sail: { index: 0, id: 1, auto: false }
   })
 
-  const status = ref({
+  const status: Ref<BoatStatus> = ref({
     aground: false,
     boat_speed: 10,
     wind: { direction: 30, speed: 15 },
@@ -82,6 +79,8 @@ export const useNavigateStore = defineStore('navigate', () => {
 
     const race = racesStore.get(raceId)
 
+    polarId.value = race?.boat || null
+
     options.value = Data.OPTIONS.getItem(context.value) || {
       lt: false,
       gt: false,
@@ -104,6 +103,8 @@ export const useNavigateStore = defineStore('navigate', () => {
         pan: [0, 0],
         zoom: 4
       }
+
+    updateStatus()
   }
 
   function savePanZoom() {
@@ -113,21 +114,32 @@ export const useNavigateStore = defineStore('navigate', () => {
   function setPosition(p: Point) {
     position.value = p
     Data.POSITION.setItem(toRaw(position.value), context.value!)
+    updateStatus()
   }
 
   function setOptions(o: BoatOptions) {
     options.value = o
     Data.OPTIONS.setItem(toRaw(options.value), context.value!)
+    updateStatus()
   }
 
   function setSettings(s: BoatSettings) {
     settings.value = s
     Data.SETTINGS.setItem(toRaw(settings.value), context.value!)
+    updateStatus()
   }
 
   function setPanZoom(pan: [number, number], zoom: number) {
     panZoom.value = {pan, zoom}
     savePanZoom()
+  }
+
+  function updateStatus() {
+    if (polarId.value) {
+      phtheirichthys.status(polarId.value, toRaw(options.value), toRaw(position.value), toRaw(settings.value)).then((s) => {
+        status.value = s
+      })
+    }
   }
 
   return {

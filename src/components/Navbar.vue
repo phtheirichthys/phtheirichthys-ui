@@ -8,6 +8,8 @@ onMounted(() => {
   //let theme = document.documentElement.getAttribute('data-theme')
 })
 
+const active = ref(false)
+
 function light() {
   theme.value = "light"
   switchTheme()
@@ -35,7 +37,7 @@ function switchTheme() {
       <a class="navbar-item" href="/">
       </a>
 
-      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar">
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar" :class="{'is-active': active}" @click="active=!active">
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
@@ -43,7 +45,7 @@ function switchTheme() {
       </a>
     </div>
 
-    <div id="navbar" class="navbar-menu">
+    <div id="navbar" class="navbar-menu" :class="{'is-active': active}" >
       <div class="navbar-start">
         <RouterLink to="/" class="navbar-item">Home</RouterLink>
         <RouterLink to="/boats" class="navbar-item">Boats</RouterLink>

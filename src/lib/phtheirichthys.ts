@@ -2,7 +2,7 @@ import mitt from 'mitt'
 import { Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 
-import { Wind, WindService } from '../lib/wind';
+import { WindService } from '../lib/wind';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys'
 import PhtheirichthysWorker from '../worker?sharedworker&inline'
 import wasmUrl from '@phtheirichthys/phtheirichthys/phtheirichthys_bg.wasm?url'
@@ -21,7 +21,7 @@ export function init() {
     worker.port.postMessage({ type: "load", wasmUrl: window.location.protocol + "//" + window.location.host + wasmUrl })
 
     worker.onerror = (error: any) => {
-        console.log("error", error)
+        console.log("worker onerror", error)
     }
     worker.port.onmessage = (message) => {
         const { type, data } = message.data
@@ -78,33 +78,7 @@ export function draw_wind(canvas: OffscreenCanvas, m: Date, x: number, y: number
     worker.port.postMessage({ type: "draw-wind", canvas, provider: "vr", moment: m, coords: { x, y, z }, size: { width, height } }, [canvas])
 }
 
-export async function eval_snake(heading: phtheirichthys.Heading) {
-
-    let boat_settings = {
-        heading: { twa: 90 },
-        sail: {
-        index: 0,
-        id: 1,
-        auto: false,
-        }
-    }
-
-    let status = {
-        aground: false,
-        boat_speed: 0,
-        wind: new Wind(0, 0),
-        foil: 0,
-        boost: 0,
-        best_ratio: 0,
-        ratio: 0,
-        vmgs: undefined,
-        penalties: {
-        gybe: undefined,
-        sail_change: undefined,
-        tack: undefined,
-        },
-        stamina: 1,
-    }
+export async function eval_snake(polarId: string, boat_options: phtheirichthys.BoatOptions, from: Point, boat_settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus, heading: phtheirichthys.Heading) {
 
     return new Promise<phtheirichthys.SnakeResult>((resolve, reject) => {
 
@@ -126,28 +100,21 @@ export async function eval_snake(heading: phtheirichthys.Heading) {
 
 
         worker.port.postMessage({
-        type: "eval-snake", uuid: request_uuid,
-        route_request: { from: { lat: 0, lon: 0 }, start_time: new Date().toISOString(), boat_settings, status },
-        params: {
-            max_duration: 48,
-            polar: "19",
-            wind_provider: WindService.get_provider(),
-            boat_options: {
-            lt: false,
-            gt: false,
-            code0: false,
-            foil: false,
-            hull: false,
-            winch: false,
-            stamina: false,
-            }
-        },
-        heading
+            type: "eval-snake", uuid: request_uuid,
+            route_request: { from, start_time: new Date().toISOString(), boat_settings, status },
+            params: {
+                max_duration: 48,
+                polar: polarId,
+                wind_provider: WindService.get_provider(),
+                boat_options,
+            },
+            heading
         })
     })
 }
 
 export function add_polar(name: string, polar: phtheirichthys.Polar) {
+    console.log("Load polar", polar._id)
     worker.port.postMessage({ type: "add-polar", name, polar })
 }
 
@@ -206,7 +173,7 @@ export async function navigate(race: phtheirichthys.Race, options: phtheirichthy
         const message = {
             type: "navigate", uuid: request_uuid,
             wind_provider: WindService.get_provider(),
-            polar_id: "19",
+            polar_id: race.boat,
             race,
             boat_options: options,
             request
@@ -218,9 +185,7 @@ export async function navigate(race: phtheirichthys.Race, options: phtheirichthy
     })
 }
 
-export async function status(options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings): Promise<phtheirichthys.BoatStatus> {
-
-    console.log("navigate : ", options, position, settings, status)
+export async function status(polarId: string, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings): Promise<phtheirichthys.BoatStatus> {
 
     let request = {
         from: position,
@@ -247,7 +212,7 @@ export async function status(options: phtheirichthys.BoatOptions,  position: Poi
         const message = {
             type: "status", uuid: request_uuid,
             wind_provider: WindService.get_provider(),
-            polar_id: "19",
+            polar_id: polarId,
             boat_options: options,
             request
         }

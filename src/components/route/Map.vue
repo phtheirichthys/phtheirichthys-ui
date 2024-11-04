@@ -10,29 +10,36 @@ import Land from '../Land.vue'
 import Wind from '../Wind.vue'
 import Route from './Route.vue'
 import NavigationConfig from './NavigationConfig.vue'
+import Polar from './Polar.vue'
 
-import { ref, onMounted, Ref, onBeforeMount } from 'vue'
+import { ref, onMounted, Ref, onBeforeMount, watch } from 'vue'
 import { Wind as InstantWind } from '../../lib/wind';
 import { Point } from '../../lib/position';
 import { useRouteStore } from '../../stores/route'
 import { useNavigateStore } from '../../stores/navigate'
 import * as phtheirichthys from '../../lib/phtheirichthys'
+import { useRacesStore } from '../../stores/races'
+import * as utils from '../../lib/utils'
 
 const props = defineProps<{
   boat: string,
   race: string,
 }>()
 
+const sidebarContent = ref(null)
+
 const ready = ref(false)
 
 const navigateStore = useNavigateStore()
 const routeStore = useRouteStore()
+const racesStore = useRacesStore()
 
-// navigateStore.$onAction(({
-  // name, // name of the action
-  // after, // hook after the action returns or resolves
-// }) => {
-// })
+const polarId = ref(racesStore.get(props.race)?.boat || null)
+
+watch(() => props.race, () => {
+  polarId.value = racesStore.get(props.race)?.boat || null
+  console.log("polar ID", polarId)
+})
 
 phtheirichthys.isLoaded().then(() => {
   console.log("Phtheirichthys is ready !")
@@ -41,7 +48,7 @@ phtheirichthys.isLoaded().then(() => {
 
 const navigating = ref(false)
 
-var legend = ref(L.DomUtil.create("div"))
+var legend = ref(L.DomUtil.create("div", "leaflet-control-velocity"))
 
 const map = new L.Map("map", {zoomControl: true, worldCopyJump: false})
 const layerControl = L.control.layers()
@@ -107,13 +114,13 @@ function onMouseMove(point: Point) {
     phtheirichthys.get_wind(point).then((w) => {
       wind.value = w
     })
-    displayLegend()
+    displayLegend(point)
   } catch (e) {
 
   }
 }
 
-function displayLegend() {
+function displayLegend(point: Point) {
   //const pad = (num: number, places: number) => String(num).padStart(places, '0')
   if (legend.value) {
     var leg = ""
@@ -123,25 +130,28 @@ function displayLegend() {
     if (wind.value) {
       leg += "<div><strong><i class='fa fa-wind'></i> </strong>" + wind.value.direction.toFixed(1) + "° " + wind.value.speed.toFixed(1) + "kt</div>"
     }
-    // if (this.cursor) {
-    //   var lat = this.convertDDToDMS(this.cursor.lat)
-    //   var lon = this.convertDDToDMS(this.cursor.lng)
-    //   leg += "<div>" + pad(lat.d, 2) + "°" + (lat.p < 0 ? "S" : "N") + " " + pad(lat.m, 2) + "'" + pad(lat.s.toFixed(0), 2) + "\" - " + pad(lon.d, 2) + "°" + (lon.p < 0 ? "W" : "E") + " " + pad(lon.m, 2) + "'" + pad(lon.s.toFixed(0), 2) + "\"</div>"
-    // }
+
+    var lat = utils.dd2dms(point.lat)
+    var lon = utils.dd2dms(point.lon)
+    leg += "<div>" + utils.lat2string(lat) + " - " + utils.lon2string(lon) + "</div>"
     legend.value.innerHTML = leg
   }
 }
 
 function center() {
-  map.flyTo(navigateStore.position.toLatLng())
+  map.flyTo([navigateStore.position.lat, navigateStore.position.lon])
 }
 
 function centerAndZoom() {
-  map.flyTo(navigateStore.position.toLatLng(), map.getZoom() + 2)
+  map.flyTo([navigateStore.position.lat, navigateStore.position.lon], map.getZoom() + 2)
 }
 
 function pan() {
 
+  let box = racesStore.box(props.race)
+  box.add(navigateStore.position)
+
+  map.flyToBounds([[box.top || 0, box.left || 0], [box.bottom || 0, box.right || 0]])
 }
 
 function navigate() {
@@ -164,12 +174,26 @@ function test_webgpu() {
   })
 }
 
+const sidebarContentWidth = ref(0)
+const sidebarContentHeight = ref(0)
+
+onMounted(() => {
+  if (!sidebarContent.value) return
+  let element = sidebarContent.value as Element
+  sidebarContentWidth.value = element.clientWidth
+  sidebarContentHeight.value = element.clientHeight
+  new ResizeObserver((sidebarContent) => {
+    sidebarContentWidth.value = sidebarContent[0].contentRect.width
+    sidebarContentHeight.value = sidebarContent[0].contentRect.height
+  }).observe(sidebarContent.value)
+})
+
 </script>
 
 <template>
   <Boat :layer="map" />
   <Graticule :layer="map" />
-  <Snake v-if="ready" :map="map" :layer-control="layerControl" />
+  <Snake v-if="ready && polarId" :polarId="polarId" :map="map" :layer-control="layerControl" />
   <Land v-if="ready" :layer="landLayerControl" />
   <Wind v-if="ready" :layer="windLayerControl" />
   <Route :map="map" :layer-control="layerControl" />
@@ -195,11 +219,12 @@ function test_webgpu() {
     </div>
 
     <!-- Tab panes -->
-    <div class="leaflet-sidebar-content">
+    <div ref="sidebarContent" class="leaflet-sidebar-content">
       <div class="leaflet-sidebar-pane" id="home">
         <NavigationConfig />
       </div>
       <div class="leaflet-sidebar-pane" id="polars">
+        <Polar v-if="polarId" :polarId="polarId" :parentWidth="sidebarContentWidth" :parentHeight="sidebarContentHeight" />
       </div>
       <div class="leaflet-sidebar-pane" id="race">
         <Race :layer="map" :raceId="props.race" :edit="false" />
@@ -208,7 +233,7 @@ function test_webgpu() {
   </div>
 </template>
 
-<style scoped>
+<style>
 @media (max-height: 460px) {
   .bottom {
     visibility: hidden;
@@ -297,4 +322,35 @@ function test_webgpu() {
 .leaflet-sidebar-tabs > li.active, .leaflet-sidebar-tabs > ul > li.on:hover {
   color: #0074d9;
 }
+
+
+.leaflet-control-velocity {
+  background-color:hsla(0,0%,100%,.7);
+  padding:0 5px;
+  margin:0!important;
+  color:#333;
+  font:11px/1.5 Helvetica Neue,Arial,Helvetica,sans-serif;
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
+	background: #fff !important;
+	border-radius: 5px !important;
+  font: 12px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif !important;
+}
+
+.leaflet-touch .leaflet-control-velocity {
+	box-shadow: none  !important;
+}
+.leaflet-touch .leaflet-control-velocity {
+	border: 2px solid rgba(0,0,0,0.2) !important;
+	background-clip: padding-box !important;
+}
+.leaflet-left .leaflet-control-velocity {
+	margin-left: 10px !important;
+}
+.leaflet-top .leaflet-control-velocity {
+	margin-top: 10px !important;
+}
+.leaflet-bottom .leaflet-control-velocity {
+  margin-bottom: 10px !important;
+}
+
 </style>

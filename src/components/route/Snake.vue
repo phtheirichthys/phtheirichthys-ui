@@ -2,11 +2,12 @@
 import type { SnakeResult } from '@phtheirichthys/phtheirichthys/phtheirichthys';
 import { Point } from '../../lib/position'
 import * as phtheirichthys from '../../lib/phtheirichthys'
-import { onMounted } from 'vue'
+import { onMounted, toRaw } from 'vue'
 import L from 'leaflet'
 import { useNavigateStore } from '../../stores/navigate';
 
 const props = defineProps<{
+  polarId: string,
   map: L.Map,
   layerControl: L.Control.Layers
 }>()
@@ -20,6 +21,7 @@ const linesLayer = L.layerGroup().addTo(layer)
 props.layerControl.addOverlay(layer, "<i class='fa fa-route'></i> Snake")
 
 onMounted(() => {
+
   layer.addTo(props.map)
   props.map.on("overlayremove", (event) => {
     if(event.layer === layer) {
@@ -40,7 +42,9 @@ onMounted(() => {
     let b = Math.round(bearingTo(position, Point.fromLatLng(latlng)))
     if(b == 360) b = 0
 
-    phtheirichthys.eval_snake({heading: b}).then((snake_result) => {
+    phtheirichthys.eval_snake(props.polarId, toRaw(navigateStore.options),
+      toRaw(navigateStore.position), toRaw(navigateStore.settings),
+      toRaw(navigateStore.status), {heading: b}).then((snake_result) => {
       display(snake_result)
     }).catch((e) => {
       console.error(e)

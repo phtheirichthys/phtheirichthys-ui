@@ -72,3 +72,20 @@ export function twa(head: Heading, twd: number): number {
   }
   return 0
 }
+
+export class Box {
+  top?: number;
+  left?: number;
+  bottom?: number;
+  right?: number;
+
+  constructor() {
+  }
+
+  add(point: {lat: number, lon: number}) {
+    this.top = Math.min(this.top || point.lat, point.lat)
+    this.bottom = Math.max(this.bottom|| point.lat, point.lat)
+    this.left = Math.min(this.left|| point.lon, point.lon)
+    this.right = Math.max(this.right|| point.lon, point.lon)
+  }
+}

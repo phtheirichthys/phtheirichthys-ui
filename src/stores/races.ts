@@ -2,6 +2,7 @@ import { defineStore } from "pinia"
 import { ref, toRaw } from "vue"
 import { Data } from "../lib/data"
 import { Race } from "@phtheirichthys/phtheirichthys"
+import { Box } from "../lib/utils"
 
 export const useRacesStore = defineStore('races', () => {
 
@@ -62,6 +63,31 @@ export const useRacesStore = defineStore('races', () => {
     return races.value.get(id) || null
   }
 
+  function box(raceId: string) : Box {
+    let box = new Box()
+    const race = get(raceId)
+    if (race) {
+      box.add(race.start)
+      for (let buoy of race.buoys) {
+        switch (buoy.type) {
+          case "Door":
+            box.add(buoy.port)
+            box.add(buoy.starboard)
+            box.add(buoy.departure)
+            box.add(buoy.destination)
+            break
+          case "Waypoint":
+            box.add(buoy.destination)
+            break
+          case "Zone":
+            box.add(buoy.destination)
+            break
+        }
+      }
+    }
+    return box
+  }
+
   return {
     races,
     add,
@@ -71,5 +97,6 @@ export const useRacesStore = defineStore('races', () => {
     save,
     remove,
     get,
+    box,
   }
 })

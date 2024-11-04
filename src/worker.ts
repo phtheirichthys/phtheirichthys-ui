@@ -102,7 +102,10 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "snake", uuid: data.uuid, data: res})
                     } catch(e) {
                         console.error("Error evaluating snake", e)
-                        port.postMessage({type: "error", uuid: data.uuid, error: e, message: "Error evaluating snake"})
+                        let message: string
+                        if (e instanceof Error) message = e.message
+                        else message = String(e)
+                        port.postMessage({type: "error", uuid: data.uuid, error: "Error evaluating snake : " + message})
                     }
                 })
                 break
@@ -116,7 +119,10 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "navigation", uuid: data.uuid, data: res})
                     }).catch((e: any) => {
                         console.error("Error evaluating navigate", e)
-                        port.postMessage({type: "error", uuid: data.uuid, error: e, message: "Error evaluating navigate"})
+                        let message: string
+                        if (e instanceof Error) message = e.message
+                        else message = String(e)
+                        port.postMessage({type: "error", uuid: data.uuid, error: "Error evaluating navigate : " + message})
                     })
                 })
                 break
@@ -127,7 +133,10 @@ self.onconnect = async (event) => {
                         port.postMessage({type: "status", uuid: data.uuid, data: res})
                     }).catch((e: any) => {
                         console.error("Error evaluating status", e)
-                        port.postMessage({type: "error", uuid: data.uuid, error: e, message: "Error evaluating status"})
+                        let message: string
+                        if (e instanceof Error) message = e.message
+                        else message = String(e)
+                        port.postMessage({type: "error", uuid: data.uuid, error: "Error evaluating status : " + message})
                     })
                 })
                 break
@@ -135,7 +144,10 @@ self.onconnect = async (event) => {
                 wasmReady.then((phtheirichthys: any) => phtheirichthys.test_webgpu().then(() => {
                     port.postMessage({type: "test-webgpu", uuid: data.uuid, ok: true})
                 })).catch((e) => {
-                    port.postMessage({type: "error", uuid: data.uuid, error: e})
+                    let message: string
+                    if (e instanceof Error) message = e.message
+                    else message = String(e)
+                    port.postMessage({type: "error", uuid: data.uuid, error: "Error testing gpu : " + message})
                 })
                 break
         }

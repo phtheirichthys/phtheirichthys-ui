@@ -121,8 +121,6 @@ function draw() {
 }
 
 function getTooltipTitle(wayPosition: RouteWaypoint) {
-  console.log(wayPosition)
-
   const sails = ["Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG"];
 
   const date = new Date(routeStore.route!.infos.start)

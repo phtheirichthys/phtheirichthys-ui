@@ -5,7 +5,7 @@ import { Data } from "../lib/data"
 import * as phtheirichthys from '../lib/phtheirichthys'
 
 interface PolarList {
-  id: number,
+  id: string,
   label: string,
 }
 
@@ -28,7 +28,11 @@ export const usePolarsStore = defineStore('polars', () => {
   }
 
   function list(): Array<PolarList> {
-    return Array.from(polars.value).map(([, polar]) => ({ id: polar._id, label: polar.label }))
+    return Array.from(polars.value).map(([, polar]) => ({ id: polar._id.toString(), label: polar.label }))
+  }
+
+  function get(id: string): Polar | null {
+    return polars.value.get(id) || null
   }
 
   function importPolar(polarString: string) {
@@ -64,6 +68,7 @@ export const usePolarsStore = defineStore('polars', () => {
     polars,
     add,
     list,
+    get,
     importPolar,
     save,
     remove
