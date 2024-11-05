@@ -78,9 +78,9 @@ export function draw_wind(canvas: OffscreenCanvas, m: Date, x: number, y: number
     worker.port.postMessage({ type: "draw-wind", canvas, provider: "vr", moment: m, coords: { x, y, z }, size: { width, height } }, [canvas])
 }
 
-export async function eval_snake(polarId: string, boat_options: phtheirichthys.BoatOptions, from: Point, boat_settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus, heading: phtheirichthys.Heading) {
+export async function eval_snake(polarId: string, boat_options: phtheirichthys.BoatOptions, from: phtheirichthys.Coords, start_time: Date, boat_settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus, heading: phtheirichthys.Heading) {
 
-    return new Promise<phtheirichthys.SnakeResult>((resolve, reject) => {
+    return new Promise<phtheirichthys.Snake>((resolve, reject) => {
 
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
@@ -101,7 +101,7 @@ export async function eval_snake(polarId: string, boat_options: phtheirichthys.B
 
         worker.port.postMessage({
             type: "eval-snake", uuid: request_uuid,
-            route_request: { from, start_time: new Date().toISOString(), boat_settings, status },
+            route_request: { from, start_time: start_time.toISOString(), boat_settings, status },
             params: {
                 max_duration: 48,
                 polar: polarId,

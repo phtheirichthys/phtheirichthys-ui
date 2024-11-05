@@ -1,7 +1,7 @@
 declare const self: SharedWorkerGlobalScope;
 
 import { Point } from './lib/position';
-import init, * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys';
+import init, * as phtheirichthys from '@phtheirichthys/phtheirichthys';
 
 export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "add-wind-provider" })

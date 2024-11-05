@@ -144,6 +144,7 @@ export const useNavigateStore = defineStore('navigate', () => {
 
   return {
     context,
+    polarId,
     title,
     load,
     options,
