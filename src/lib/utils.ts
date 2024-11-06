@@ -90,9 +90,10 @@ export class Box {
   }
 }
 
-export function getTooltipTitle(date: Date, wayPosition: RouteWaypoint) {
+export function getTooltipTitle(waypoint_date: Date, wayPosition: RouteWaypoint) {
   const sails = ["Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG"];
 
+  let date = new Date(waypoint_date)
   date.setSeconds(date.getSeconds() + wayPosition.duration)
 
   const delta = Math.abs(new Date(date).getTime() - new Date().getTime()) / 36e5;

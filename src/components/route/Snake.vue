@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Coords, RouteWaypoint, Snake } from '@phtheirichthys/phtheirichthys'
 import { Point } from '../../lib/position'
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import L from 'leaflet'
 import { useSnakeStore } from '../../stores/snake'
 import * as utils from '../../lib/utils'
@@ -15,7 +15,8 @@ const props = defineProps<{
 const snakeStore = useSnakeStore()
 
 const layer = new L.LayerGroup()
-const linesLayer = L.layerGroup().addTo(layer)
+const snakeLayer = L.layerGroup().addTo(layer)
+const progsLayer = L.layerGroup().addTo(layer)
 const bigIcon = new L.DivIcon({
       iconSize: new L.Point(300, 300),
       className: 'leaflet-div-icon leaflet-snaking-icon leaflet-touch-icon'
@@ -24,9 +25,25 @@ const smallIcon = new L.DivIcon({
     iconSize: new L.Point(100, 100),
     className: 'leaflet-div-icon leaflet-snaking-icon leaflet-touch-icon'
 })
-const snakingCmd = L.marker([snakeStore.last.lat, snakeStore.last.lon], {icon: smallIcon, opacity: 0.1, zIndexOffset: 0})
+const snakingCmd = L.marker([snakeStore.last.from.lat, snakeStore.last.from.lon], {icon: smallIcon, opacity: 0.1, zIndexOffset: 0})
   .on("mousedown", onDragStart)
   .addTo(layer)
+
+watch(() => snakeStore.last, () => {
+  snakingCmd.setLatLng([snakeStore.last.from.lat, snakeStore.last.from.lon])
+
+  snakeStore.get(snakeHeading).then((snake) => {
+    console.log("get snake")
+    display(snakeHeading, snake)
+  }).catch((e) => {
+    console.error(e)
+  })
+
+})
+
+watch(() => snakeStore.progs, () => {
+  displayProgs()
+})
 
 props.layerControl.addOverlay(layer, "<i class='fa fa-route'></i> Snake")
 
@@ -47,7 +64,6 @@ onMounted(() => {
 
   const element = snakingCmd.getElement()
   if (element) {
-    console.log("Bind Event touchstart")
     L.DomEvent.on(element, "touchstart", onDragStart)
   }
 
@@ -62,7 +78,6 @@ function onDragStart(event: any) {
   else
     L.DomEvent.stop(event)
 
-  console.log("Start snaking")
   snakingCmd.setOpacity(0.3)
   snakingCmd.setIcon(bigIcon)
 
@@ -89,7 +104,7 @@ function onDrag(event: any) {
     return
   }
   let latlng = props.map.containerPointToLatLng(L.point(containerPoint.x, containerPoint.y))
-  let heading = Math.round(bearingTo(snakeStore.last, Point.fromLatLng(latlng)))
+  let heading = Math.round(bearingTo(snakeStore.last.from, Point.fromLatLng(latlng)))
 
   if (!initialSnakingCmdHeading) {
     initialSnakingCmdHeading = heading
@@ -104,7 +119,7 @@ function onDrag(event: any) {
   while (snakeHeading >= 360) snakeHeading -= 360
 
   snakeStore.get(snakeHeading).then((snake) => {
-    display(snake)
+    display(snakeHeading, snake)
   }).catch((e) => {
     console.error(e)
   })
@@ -116,8 +131,6 @@ function onDragEnd() {
   snakingCmd.setIcon(smallIcon)
 
   initialSnakingCmdHeading = null
-
-  console.log("Stop snaking", snakeHeading)
 
   props.map
     .off("mousemove", onDrag)
@@ -161,13 +174,13 @@ function bearingTo(from: Coords, to: Coords) {
   return wrap360(b)
 }
 
-function display(snake: Snake) {
-  linesLayer.clearLayers()
-  displayLine(snake.heading, false)
-  displayLine(snake.twa, true)
+function display(snakeHeading: number, snake: Snake) {
+  snakeLayer.clearLayers()
+  displaySnake(snakeHeading, snake.heading, false)
+  displaySnake(snakeHeading, snake.twa, true)
 }
 
-function displayLine(waypoints: RouteWaypoint[], isTwa: boolean) {
+function displaySnake(snakeHeading: number, waypoints: RouteWaypoint[], isTwa: boolean) {
   var color = "#3bdbd5"
   var icon = new L.DivIcon({
       iconSize: new L.Point(20, 20),
@@ -186,11 +199,48 @@ function displayLine(waypoints: RouteWaypoint[], isTwa: boolean) {
   waypoints.forEach((waypoint) => {
     const pt = waypoint.from
     L.marker([pt.lat, pt.lon], {icon: icon, zIndexOffset: isTwa ? 75 : 50})
-      .bindTooltip(() => utils.getTooltipTitle(new Date(), waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
-      .addTo(linesLayer)
+      .bindTooltip(() => utils.getTooltipTitle(snakeStore.last_start_date, waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
+      .on('click', () => {
+        snakeStore.addProg(snakeHeading, waypoint, isTwa)
+        displayProgs()
+      })
+      .addTo(snakeLayer)
     path.push(new L.LatLng(pt.lat, pt.lon));
   })
-  L.polyline(path, {color: color, weight: 1, smoothFactor: 2, lineJoin: 'round', opacity: 0.9}).addTo(linesLayer);
+  L.polyline(path, {color: color, weight: 1, smoothFactor: 2, lineJoin: 'round', opacity: 0.9}).addTo(snakeLayer);
+}
+
+function displayProgs() {
+  progsLayer.clearLayers()
+  snakeStore.progs.forEach((prog, progIndex) => {
+
+    var color = "#3bdbd5"
+    var icon = new L.DivIcon({
+        iconSize: new L.Point(20, 20),
+        className: 'leaflet-div-icon leaflet-bearingline-icon leaflet-touch-icon'
+    })
+    if (prog.isTwa) {
+      color = "#ef1780"
+      icon = new L.DivIcon({
+          iconSize: new L.Point(20, 20),
+          className: 'leaflet-div-icon leaflet-twaline-icon leaflet-touch-icon'
+      })
+    }
+
+    let path = new Array<L.LatLng>()
+
+    prog.waypoints.forEach((waypoint, waypointIndex) => {
+      const pt = waypoint.from
+      L.marker([pt.lat, pt.lon], {icon: icon, zIndexOffset: prog.isTwa ? 75 : 50})
+        .bindTooltip(() => utils.getTooltipTitle(prog.start_date, waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
+        .on('click', () => {
+          snakeStore.setProg(progIndex, waypointIndex)
+        })
+        .addTo(progsLayer)
+      path.push(new L.LatLng(pt.lat, pt.lon));
+    })
+    L.polyline(path, {color: color, weight: 1, smoothFactor: 2, lineJoin: 'round', opacity: 0.9}).addTo(progsLayer);
+  })
 }
 </script>
 
