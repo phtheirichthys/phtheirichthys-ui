@@ -24,7 +24,7 @@ const smallIcon = new L.DivIcon({
     iconSize: new L.Point(100, 100),
     className: 'leaflet-div-icon leaflet-snaking-icon leaflet-touch-icon'
 })
-const snakingCmd = L.marker([snakeStore.last.lat, snakeStore.last.lon], {icon: smallIcon, opacity: 0.1, zIndexOffset: 25})
+const snakingCmd = L.marker([snakeStore.last.lat, snakeStore.last.lon], {icon: smallIcon, opacity: 0.1, zIndexOffset: 0})
   .on("mousedown", onDragStart)
   .addTo(layer)
 
@@ -45,7 +45,11 @@ onMounted(() => {
     }
   })
 
-  snakingCmd.getElement()?.addEventListener("touchstart", onDragStart)
+  const element = snakingCmd.getElement()
+  if (element) {
+    console.log("Bind Event touchstart")
+    L.DomEvent.on(element, "touchstart", onDragStart)
+  }
 
 })
 
@@ -93,11 +97,13 @@ function onDrag(event: any) {
 
   let delta_heading = heading >= initialSnakingCmdHeading ? heading - initialSnakingCmdHeading : heading + 360 - initialSnakingCmdHeading
 
-  let h = snakeHeading + delta_heading
-  while (h < 0) h += 360
-  while (h >= 360) h -= 360
+  initialSnakingCmdHeading = heading
 
-  snakeStore.get(h).then((snake) => {
+  snakeHeading = snakeHeading + delta_heading
+  while (snakeHeading < 0) snakeHeading += 360
+  while (snakeHeading >= 360) snakeHeading -= 360
+
+  snakeStore.get(snakeHeading).then((snake) => {
     display(snake)
   }).catch((e) => {
     console.error(e)
@@ -105,17 +111,9 @@ function onDrag(event: any) {
 
 }
 
-function onDragEnd(event: any) {
+function onDragEnd() {
   snakingCmd.setOpacity(0.1)
   snakingCmd.setIcon(smallIcon)
-
-  let latlng = props.map.containerPointToLatLng(L.point(event.containerPoint.x, event.containerPoint.y))
-  let heading = Math.round(bearingTo(snakeStore.last, Point.fromLatLng(latlng)))
-
-  snakeHeading += heading - initialSnakingCmdHeading!
-
-  while (snakeHeading < 0) snakeHeading += 360
-  while (snakeHeading >= 360) snakeHeading -= 360
 
   initialSnakingCmdHeading = null
 
@@ -125,8 +123,7 @@ function onDragEnd(event: any) {
     .off("mousemove", onDrag)
     .off("mouseup", onDragEnd)
   L.DomEvent
-    .off(document.documentElement, "touchmove", onDrag)
-    .off(document.documentElement, "touchend", onDragEnd);
+    .off(document.documentElement, { touchmove: onDrag, touchend: onDragEnd })
 
   props.map.dragging.enable();
 }
