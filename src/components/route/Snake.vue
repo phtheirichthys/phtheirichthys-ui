@@ -33,7 +33,6 @@ watch(() => snakeStore.last, () => {
   snakingCmd.setLatLng([snakeStore.last.from.lat, snakeStore.last.from.lon])
 
   snakeStore.get(snakeHeading).then((snake) => {
-    console.log("get snake")
     display(snakeHeading, snake)
   }).catch((e) => {
     console.error(e)

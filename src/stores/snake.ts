@@ -73,8 +73,6 @@ export const useSnakeStore = defineStore('snake', () => {
 
       } else {
 
-        console.log("Snake to", last_start_date.value)
-
         phtheirichthys.eval_snake(toRaw(navigateStore.polarId!), toRaw(navigateStore.options),
           toRaw(last.value.from), toRaw(last_start_date.value), toRaw(last.value.boat_settings),
           {
@@ -125,7 +123,6 @@ export const useSnakeStore = defineStore('snake', () => {
   }
 
   function setProg(progIndex: number, waypointIndex: number) {
-    console.log("set prog", progIndex, waypointIndex)
     progs.value = progs.value.slice(0, progIndex + 1)
     progs.value[progs.value.length - 1].waypoints = progs.value[progs.value.length - 1].waypoints.slice(0, waypointIndex + 1)
     last.value = progs.value[progs.value.length - 1].waypoints[progs.value[progs.value.length - 1].waypoints.length - 1]
