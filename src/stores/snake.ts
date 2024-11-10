@@ -3,6 +3,7 @@ import { defineStore } from "pinia"
 import { ref, Ref, toRaw, watch } from "vue"
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { useNavigateStore } from "./navigate"
+import { useWindStore } from "./wind"
 
 interface Prog {
   start_date: Date,
@@ -13,6 +14,7 @@ interface Prog {
 export const useSnakeStore = defineStore('snake', () => {
 
   const navigateStore = useNavigateStore()
+  const windStore = useWindStore()
 
   const snake = ref(new Array<Snake>())
   const progs = ref(new Array<Prog>())
@@ -61,6 +63,7 @@ export const useSnakeStore = defineStore('snake', () => {
   })
 
   async function get(h: number): Promise<Snake> {
+    await windStore.isReady
 
     return new Promise<Snake>((resolve, reject) => {
 
@@ -72,8 +75,7 @@ export const useSnakeStore = defineStore('snake', () => {
         resolve(snake.value[h])
 
       } else {
-
-        phtheirichthys.eval_snake(toRaw(navigateStore.polarId!), toRaw(navigateStore.options),
+        phtheirichthys.eval_snake(toRaw(navigateStore.polarId!), toRaw(windStore.provider), toRaw(navigateStore.options),
           toRaw(last.value.from), toRaw(last_start_date.value), toRaw(last.value.boat_settings),
           {
             aground: false,

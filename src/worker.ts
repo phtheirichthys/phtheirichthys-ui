@@ -4,7 +4,7 @@ import { Point } from './lib/position';
 import init, * as phtheirichthys from '@phtheirichthys/phtheirichthys';
 
 export type EventData = ({ type: "load" } & { wasmUrl: string })
-    | ({ type: "add-wind-provider" })
+    | ({ type: "add-wind-provider" } & { uuid: string, provider: string })
     | ({ type: "get-wind-provider-status" } & { provider: string })
     | ({ type: "get-wind" } & { uuid: string, provider: string, moment: Date, point: Point })
     | ({ type: "add-land-provider" })
@@ -52,7 +52,18 @@ self.onconnect = async (event) => {
                 break
     
             case "add-wind-provider":
-                wasmReady.then((phtheirichthys: any) => phtheirichthys.add_wind_provider())
+                wasmReady.then((phtheirichthys: any) => {
+                    //TODO : add provider as parameter
+                    phtheirichthys.add_wind_provider().then(() => {
+                        port.postMessage({type: "add-wind-provider", uuid: data.uuid})
+                    }).catch((e: any) => {
+                        console.error("Error adding wind provider", data.provider, e)
+                        let message: string
+                        if (e instanceof Error) message = e.message
+                        else message = String(e)
+                        port.postMessage({type: "error", uuid: data.uuid, error: "Error adding wind provider : " + message})
+                    })
+                })
                 break
             case "get-wind-provider-status":
                 wasmReady.then((phtheirichthys: any) => {

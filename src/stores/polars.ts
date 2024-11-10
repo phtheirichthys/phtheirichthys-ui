@@ -24,7 +24,7 @@ export const usePolarsStore = defineStore('polars', () => {
     polars.value.set(id, polar)
     Data.POLARS.setItem(toRaw(polars.value))
 
-    phtheirichthys.add_polar(id, polar)
+    phtheirichthys.add_polar(id, toRaw(polar))
   }
 
   function list(): Array<PolarList> {

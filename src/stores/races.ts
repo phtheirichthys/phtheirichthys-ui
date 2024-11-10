@@ -1,18 +1,17 @@
 import { defineStore } from "pinia"
 import { ref, toRaw } from "vue"
 import { Data } from "../lib/data"
-import { Race } from "@phtheirichthys/phtheirichthys"
-import { Box } from "../lib/utils"
+import { Buoy, Coords, Race } from "@phtheirichthys/phtheirichthys"
+import { Box, computeDestinationAndDeparture } from "../lib/utils"
 
 export const useRacesStore = defineStore('races', () => {
 
   console.log("Load Races Store")
 
   const races = ref(Data.RACES.getItem<Map<string, Race>>() ?? new Map<string, Race>())
-
   function add(race: Race) {
     let id = race.id.toString()
-    if (race.leg) {
+    if (race.leg && race.leg > 0) {
       id += "-" + race.leg
     }
     console.log(races)
@@ -27,8 +26,71 @@ export const useRacesStore = defineStore('races', () => {
   }
 
   function importRace(raceString: string) {
-    let race = JSON.parse(raceString) as Race
-    add(race)
+    const imported: any = JSON.parse(raceString)
+
+    if ('checkpoints' in imported) {
+      console.log("import from vr")
+
+      let buoys: Array<Buoy> = imported.checkpoints
+      .filter((checkpoint: any) => checkpoint.cvo !== true)
+      .map((checkpoint: any) => {
+        let port, starboard: Coords
+        if (checkpoint.side === "port") {
+          port = checkpoint.start
+          starboard = checkpoint.end
+        } else {
+          port = checkpoint.end
+          starboard = checkpoint.start
+        }
+
+        let dAndD = computeDestinationAndDeparture(port, starboard)
+
+        return {
+          type: "Door",
+          name: checkpoint.group.toString(),
+          port,
+          starboard,
+          departure: dAndD.departure,
+          destination: dAndD.destination,
+          to_avoid: [],
+          validated: false,
+        }
+      })
+
+      buoys.push({
+        type: "Zone",
+        name: "END",
+        destination: { lat: imported.end.lat, lon: imported.end.lon },
+        radius: imported.end.radius,
+        to_avoid: [],
+        validated: false
+      })
+
+      let race = {
+        id: imported.name.toLowerCase()
+        .replace(/[éèê]/g, "e")
+        .replace(/[àâ]/g, "a")
+        .replace(/[îï]/g, "i")
+        .replace(/[^a-z0-9]/g, "-"),
+        name: imported.name,
+        leg: 0,
+        boat: imported.boat.polar_id.toString(),
+        stamina: imported.stamina,
+        start_time: imported.start.date,
+        end_time: imported.close.date,
+        start: {lat: imported.start.lat, lon: imported.start.lon},
+        buoys: buoys,
+        ice_limits: imported.ice_limits,
+        restricted_zones: imported.restrictedZones,
+      }
+
+      console.log("the race", race)
+      add(race)
+    } else {
+      let race = imported as Race
+      console.log("race to import", race, imported)
+      add(race)
+    }
   }
 
   function newRace(): Race {
@@ -38,7 +100,8 @@ export const useRacesStore = defineStore('races', () => {
       name: "",
       boat: "",
       start: { lat: 0, lon: 0 },
-      buoys: []
+      buoys: [],
+      restricted_zones: [],
     }
   }
 

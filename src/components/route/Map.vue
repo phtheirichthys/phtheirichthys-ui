@@ -13,13 +13,14 @@ import NavigationConfig from './NavigationConfig.vue'
 import Polar from './Polar.vue'
 
 import { ref, onMounted, Ref, onBeforeMount, watch } from 'vue'
-import { Wind as InstantWind } from '../../lib/wind';
 import { Point } from '../../lib/position';
 import { useRouteStore } from '../../stores/route'
 import { useNavigateStore } from '../../stores/navigate'
 import * as phtheirichthys from '../../lib/phtheirichthys'
 import { useRacesStore } from '../../stores/races'
 import * as utils from '../../lib/utils'
+import { useWindStore } from '../../stores/wind'
+import { Wind as InstantWind } from '@phtheirichthys/phtheirichthys'
 
 const props = defineProps<{
   boat: string,
@@ -33,6 +34,7 @@ const ready = ref(false)
 const navigateStore = useNavigateStore()
 const routeStore = useRouteStore()
 const racesStore = useRacesStore()
+const windStore = useWindStore()
 
 const polarId = ref(racesStore.get(props.race)?.boat || null)
 
@@ -53,7 +55,6 @@ var legend = ref(L.DomUtil.create("div", "leaflet-control-velocity"))
 const map = new L.Map("map", {zoomControl: true, worldCopyJump: false})
 const layerControl = L.control.layers()
 const landLayerControl = L.layerGroup()
-const windLayerControl = L.layerGroup()
 
 var wind: Ref<InstantWind | null> = ref(null)
 
@@ -74,7 +75,6 @@ onMounted(() => {
     layerControl.addTo(map)
 
     layerControl.addOverlay(landLayerControl, "<i class='fas fa-globe-europe'></i> Land");
-    layerControl.addOverlay(windLayerControl, "<i class='fas fa-globe-europe'></i> Wind");
 
     let VelocityControl = L.Control.extend({
       onAdd: function() {
@@ -110,14 +110,10 @@ onMounted(() => {
 })
 
 function onMouseMove(point: Point) {
-  try {
-    phtheirichthys.get_wind(point).then((w) => {
-      wind.value = w
-    })
-    displayLegend(point)
-  } catch (e) {
-
-  }
+  windStore.getWind(point).then((w) => {
+    wind.value = w
+  })
+  displayLegend(point)
 }
 
 function displayLegend(point: Point) {
@@ -195,7 +191,7 @@ onMounted(() => {
   <Graticule :layer="map" />
   <Snake v-if="ready && polarId" :polarId="polarId" :map="map" :layer-control="layerControl" />
   <Land v-if="ready" :layer="landLayerControl" />
-  <Wind v-if="ready" :layer="windLayerControl" />
+  <Wind v-if="ready" :map="map" :layer-control="layerControl" />
   <Route :map="map" :layer-control="layerControl" />
 
   <div id="sidebar" class="leaflet-sidebar collapsed">

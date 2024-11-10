@@ -6,6 +6,7 @@ import { BoatOptions, BoatSettings, BoatStatus } from "@phtheirichthys/phtheiric
 import { useRacesStore } from "./races"
 import { useBoatsStore } from "./boats"
 import * as phtheirichthys from '../lib/phtheirichthys'
+import { useWindStore } from "./wind"
 
 interface PanZoom {
   pan: [number, number],
@@ -16,6 +17,7 @@ export const useNavigateStore = defineStore('navigate', () => {
 
   const racesStore = useRacesStore()
   const boatsStore = useBoatsStore()
+  const windStore = useWindStore()
 
   console.log("Load Navigate Store")
 
@@ -134,11 +136,10 @@ export const useNavigateStore = defineStore('navigate', () => {
     savePanZoom()
   }
 
-  function updateStatus() {
+  async function updateStatus() {
+    await windStore.isReady
     if (polarId.value) {
-      phtheirichthys.status(polarId.value, toRaw(options.value), toRaw(position.value), toRaw(settings.value)).then((s) => {
-        status.value = s
-      })
+      status.value = await phtheirichthys.status(polarId.value, toRaw(windStore.provider), toRaw(options.value), toRaw(position.value), toRaw(settings.value))
     }
   }
 

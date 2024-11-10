@@ -2,7 +2,6 @@ import mitt from 'mitt'
 import { Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 
-import { WindService } from '../lib/wind';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys'
 import PhtheirichthysWorker from '../worker?sharedworker&inline'
 import wasmUrl from '@phtheirichthys/phtheirichthys/phtheirichthys_bg.wasm?url'
@@ -35,20 +34,71 @@ export function init() {
     worker.port.onmessageerror = (message) => {
         console.error("On Message Error", message)
     }
-    
-    add_wind_provider()
 }
 
 export function terminate() {
     worker.port.close()
 }
 
-function add_wind_provider() {
-    console.log("add wind provider")
-    worker.port.postMessage({ type: "add-wind-provider" })
+export function add_wind_provider(provider: string) {
+    console.log("Add wind provider", provider)
+
+    return new Promise<void>((resolve, reject) => {
+        const request_uuid = uuidv4()
+        const handler = (message: MessageEvent<any>) => {
+            const { type, uuid } = message.data
+
+            if (uuid === request_uuid) {
+                worker.port.removeEventListener("message", handler)
+                if (type === "add-wind-provider") {
+                    resolve()
+                } else {
+                    const { error } = message.data
+                    reject(error)
+                }
+            }
+        }
+        worker.port.addEventListener("message", handler)
+
+        const message = {
+            type: "add-wind-provider", uuid: request_uuid,
+            wind_provider: provider,
+        }
+
+        worker.port.postMessage(message)
+    })
 }
 
-export async function get_wind(point: Point) {
+export function get_wind_provider_status(provider: string) {
+    console.log("Add wind provider", provider)
+
+    return new Promise<void>((resolve, reject) => {
+        const request_uuid = uuidv4()
+        const handler = (message: MessageEvent<any>) => {
+            const { type, uuid } = message.data
+
+            if (uuid === request_uuid) {
+                worker.port.removeEventListener("message", handler)
+                if (type === "add-wind-provider") {
+                    resolve()
+                } else {
+                    const { error } = message.data
+                    reject(error)
+                }
+            }
+        }
+        worker.port.addEventListener("message", handler)
+
+        const message = {
+            type: "add-wind-provider", uuid: request_uuid,
+            wind_provider: provider,
+        }
+
+        worker.port.postMessage(message)
+    })
+}
+
+export async function get_wind(provider: string, point: phtheirichthys.Coords, moment: Date = new Date()) {
     return new Promise<phtheirichthys.Wind>((resolve) => {
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
@@ -61,7 +111,7 @@ export async function get_wind(point: Point) {
         }
         worker.port.addEventListener("message", handler)
 
-        worker.port.postMessage({ type: "get-wind", uuid: request_uuid, provider: WindService.get_provider(), moment: new Date(), point: point })
+        worker.port.postMessage({ type: "get-wind", uuid: request_uuid, provider, moment, point: point })
     })
 }
 
@@ -74,11 +124,11 @@ export function draw_land(canvas: OffscreenCanvas, x: number, y: number, z: numb
     worker.port.postMessage({ type: "draw-land", canvas, provider: "vr", coords: { x, y, z }, size: { width, height } }, [canvas])
 }
 
-export function draw_wind(canvas: OffscreenCanvas, m: Date, x: number, y: number, z: number, width: number, height: number) {
-    worker.port.postMessage({ type: "draw-wind", canvas, provider: "vr", moment: m, coords: { x, y, z }, size: { width, height } }, [canvas])
+export function draw_wind(wind_provider: string, canvas: OffscreenCanvas, m: Date, x: number, y: number, z: number, width: number, height: number) {
+    worker.port.postMessage({ type: "draw-wind", canvas, provider: wind_provider, moment: m, coords: { x, y, z }, size: { width, height } }, [canvas])
 }
 
-export async function eval_snake(polarId: string, boat_options: phtheirichthys.BoatOptions, from: phtheirichthys.Coords, start_time: Date, boat_settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus, heading: phtheirichthys.Heading) {
+export async function eval_snake(polarId: string, wind_provider: string, boat_options: phtheirichthys.BoatOptions, from: phtheirichthys.Coords, start_time: Date, boat_settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus, heading: phtheirichthys.Heading) {
 
     return new Promise<phtheirichthys.Snake>((resolve, reject) => {
 
@@ -105,7 +155,7 @@ export async function eval_snake(polarId: string, boat_options: phtheirichthys.B
             params: {
                 max_duration: 48,
                 polar: polarId,
-                wind_provider: WindService.get_provider(),
+                wind_provider,
                 boat_options,
             },
             heading
@@ -142,7 +192,7 @@ export async function test_webgpu() {
 
 }
 
-export async function navigate(race: phtheirichthys.Race, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus) {
+export async function navigate(race: phtheirichthys.Race, wind_provider: string, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus) {
 
     console.log("navigate : ", options, position, settings, status)
 
@@ -172,7 +222,7 @@ export async function navigate(race: phtheirichthys.Race, options: phtheirichthy
 
         const message = {
             type: "navigate", uuid: request_uuid,
-            wind_provider: WindService.get_provider(),
+            wind_provider,
             polar_id: race.boat,
             race,
             boat_options: options,
@@ -185,7 +235,7 @@ export async function navigate(race: phtheirichthys.Race, options: phtheirichthy
     })
 }
 
-export async function status(polarId: string, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings): Promise<phtheirichthys.BoatStatus> {
+export async function status(polarId: string, wind_provider: string, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings): Promise<phtheirichthys.BoatStatus> {
 
     let request = {
         from: position,
@@ -211,7 +261,7 @@ export async function status(polarId: string, options: phtheirichthys.BoatOption
 
         const message = {
             type: "status", uuid: request_uuid,
-            wind_provider: WindService.get_provider(),
+            wind_provider,
             polar_id: polarId,
             boat_options: options,
             request

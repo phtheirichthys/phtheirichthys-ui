@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Buoy, Coords, Door } from '@phtheirichthys/phtheirichthys'
 import { computed, onMounted, ref, toRaw, watch } from 'vue'
-import { dd2dms, lat2string, lon2string } from '../lib/utils'
+import { dd2dms, lat2string, lon2string, computeDestinationAndDeparture } from '../lib/utils'
 import L from 'leaflet'
 import "leaflet-extra-markers"
+import Dms from './route/Dms.vue'
 
 const props = defineProps<{
   edit: boolean | false,
@@ -157,6 +158,14 @@ function drawBuoy() {
   var markerIcon = L.ExtraMarkers.icon({icon: 'fa-number', number: buoy.value.name, shape: 'penta', markerColor: buoy.value.validated === true ? 'cyan' : 'yellow'});
   var markerIconPort = L.ExtraMarkers.icon({icon: 'fa-number', number: buoy.value.name, shape: 'penta', markerColor: buoy.value.validated === true ? 'cyan' : 'red'});
   var markerIconStarboard = L.ExtraMarkers.icon({icon: 'fa-number', number: buoy.value.name, shape: 'penta', markerColor: buoy.value.validated === true ? 'cyan' : 'green'});
+  const destinationIcon = new L.DivIcon({
+    iconSize: new L.Point(20, 20),
+    className: 'leaflet-div-icon leaflet-destination-icon leaflet-touch-icon'
+  })
+  const departureIcon = new L.DivIcon({
+    iconSize: new L.Point(20, 20),
+    className: 'leaflet-div-icon leaflet-departure-icon leaflet-touch-icon'
+  })
 
   var wrap = 0//buoy.value.wrap ? buoy.value.wrap * 360 : 0
   if(buoy.value.type === "Zone") {
@@ -225,7 +234,7 @@ function drawBuoy() {
       }).addTo(props.layer)
     markers.value.push(m2)
 
-    var destination = L.marker([buoy.value.destination.lat, buoy.value.destination.lon + wrap], {icon:markerIconPort, draggable: props.edit, zIndexOffset: 4999})
+    var destination = L.marker([buoy.value.destination.lat, buoy.value.destination.lon + wrap], {icon: destinationIcon, draggable: props.edit, zIndexOffset: 4999})
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
         let door = buoy.value as Door
@@ -234,7 +243,7 @@ function drawBuoy() {
       }).addTo(props.layer)
     markers.value.push(destination)
 
-    var departure = L.marker([buoy.value.departure.lat, buoy.value.departure.lon + wrap], {icon: markerIconStarboard, draggable: props.edit, zIndexOffset: 4999})
+    var departure = L.marker([buoy.value.departure.lat, buoy.value.departure.lon + wrap], {icon: departureIcon, draggable: props.edit, zIndexOffset: 4999})
       .on('dragend', function(event) {
         var latlng = event.target.getLatLng();
         let door = buoy.value as Door
@@ -254,24 +263,6 @@ watch([buoy, () => props.edit], () => {
 },
 { deep: true })
 
-function computeDestinationAndDeparture(port: Coords, starboard: Coords): {destination: Coords, departure: Coords} {
-  const center = {
-    lat: (port.lat + starboard.lat) / 2,
-    lon: (port.lon + starboard.lon) / 2
-  }
-
-  const departure = {
-    lat: -(starboard.lon - center.lon) + center.lat,
-    lon: (starboard.lat - center.lat) + center.lon
-  }
-
-  const destination = {
-    lat: -(port.lon - center.lon) + center.lat,
-    lon: (port.lat - center.lat) + center.lon
-  }
-
-  return {destination: destination, departure: departure}
-}
 </script>
 
 <template>
@@ -316,8 +307,12 @@ function computeDestinationAndDeparture(port: Coords, starboard: Coords): {desti
 
             <div v-if="buoy.type === 'Waypoint'">
               <div>
-                <span class="icon-text" :class="colorClassLeft"><span class="icon"><i class="fas fa-square-full" :class="{'start': edit, 'waypoint': !edit}"></i></span>
-                <span>{{ coord(buoy.destination) }}</span></span>
+                <span class="icon-text" :class="colorClassLeft">
+                  <span class="icon"><i class="fas fa-square-full" :class="{'start': edit, 'waypoint': !edit}"></i></span>
+                  <span>
+                    {{ coord(buoy.destination) }}
+                  </span>
+                </span>
               </div>
             </div>
 
@@ -350,12 +345,32 @@ function computeDestinationAndDeparture(port: Coords, starboard: Coords): {desti
 
             <div v-if="buoy.type === 'Door'">
               <div>
-                <span class="icon-text" :class="colorClassLeft"><span class="icon"><i class="fas fa-square-full" :class="{'start': edit, 'waypoint': !edit}"></i></span>
-                <span>{{ coord(buoy.port) }}</span></span>
+                <span class="icon-text" :class="colorClassLeft">
+                  <span class="icon"><i class="fas fa-square-full" :class="{'start': edit, 'waypoint': !edit}"></i></span>
+                  <span v-if="!edit">
+                    {{ coord(buoy.port) }}
+                  </span>
+                  <span v-if="edit">
+                    <div class="columns">
+                      <div class="column"><Dms :dd="buoy.port.lat" :pasteStatus="0" type="latitude" /></div>
+                      <div class="column"><Dms :dd="buoy.port.lon" :pasteStatus="0" type="longitude" /></div>
+                    </div>
+                  </span>
+                </span>
               </div>
               <div>
-                <span class="icon-text" :class="colorClassRight"><span class="icon"><i class="fas fa-square-full"></i></span>
-                <span>{{ coord(buoy.starboard) }}</span></span>
+                <span class="icon-text" :class="colorClassRight">
+                  <span class="icon"><i class="fas fa-square-full"></i></span>
+                  <span v-if="!edit">
+                    {{ coord(buoy.starboard) }}
+                  </span>
+                  <span v-if="edit">
+                    <div class="columns is-0">
+                      <div class="column"><Dms :dd="buoy.starboard.lat" :pasteStatus="0" type="latitude" /></div>
+                      <div class="column"><Dms :dd="buoy.starboard.lon" :pasteStatus="0" type="longitude" /></div>
+                    </div>
+                  </span>
+                </span>
               </div>
             </div>
 
@@ -410,4 +425,32 @@ function computeDestinationAndDeparture(port: Coords, starboard: Coords): {desti
 .with-dragger {
   margin-left: 20px
 }
+
+
+.leaflet-div-icon.leaflet-destination-icon.leaflet-touch-icon {
+    background: #9c272b;
+    color: #9c272b;
+    border-radius: 50%;
+    border: 8px solid transparent;
+    background-clip: padding-box;
+    box-sizing: border-box;
+}
+.leaflet-div-icon.leaflet-destination-icon.leaflet-touch-icon:hover {
+  border: 6px solid transparent;
+}
+
+.leaflet-div-icon.leaflet-departure-icon.leaflet-touch-icon {
+    background: #008c38;
+    color: #008c38;
+    border-radius: 50%;
+    border: 8px solid transparent;
+    background-clip: padding-box;
+    box-sizing: border-box;
+}
+.leaflet-div-icon.leaflet-departure-icon.leaflet-touch-icon:hover {
+  border: 6px solid transparent;
+}
+
+
+
 </style>

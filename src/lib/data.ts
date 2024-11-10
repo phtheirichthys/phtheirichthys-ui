@@ -52,7 +52,7 @@ export class Data {
     }
 
     setItem<T>(value: T, ctx: Context = {boat: null, race: null}): void {
-        console.log("setItem", this, ctx)
+        // console.log("setItem", this, ctx)
         function replacer(_key: string, value: any) {
             if(value instanceof Map) {
                 return {

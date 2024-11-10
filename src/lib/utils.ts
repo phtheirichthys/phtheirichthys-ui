@@ -1,4 +1,4 @@
-import type { Heading, RouteWaypoint } from '@phtheirichthys/phtheirichthys'
+import type { Coords, Heading, RouteWaypoint } from '@phtheirichthys/phtheirichthys'
 
 export type SpeedUnit = "Knot" | "MeterPerSecond" | "KiloMeterPerHour"
 
@@ -174,4 +174,23 @@ export function getTooltipTitle(waypoint_date: Date, wayPosition: RouteWaypoint)
 
 
   return res
+}
+
+export function computeDestinationAndDeparture(port: Coords, starboard: Coords): {destination: Coords, departure: Coords} {
+  const center = {
+    lat: (port.lat + starboard.lat) / 2,
+    lon: (port.lon + starboard.lon) / 2
+  }
+
+  const departure = {
+    lat: -(starboard.lon - center.lon) + center.lat,
+    lon: (starboard.lat - center.lat) + center.lon
+  }
+
+  const destination = {
+    lat: -(port.lon - center.lon) + center.lat,
+    lon: (port.lat - center.lat) + center.lon
+  }
+
+  return {destination: destination, departure: departure}
 }

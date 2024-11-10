@@ -15,8 +15,6 @@ const importText = ref("")
 const importError = ref("")
 
 function importRace() {
-  console.log("import race", importText.value)
-
   try {
     racesStore.importRace(importText.value)
     importIsActive.value = false

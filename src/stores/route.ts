@@ -5,6 +5,7 @@ import { RouteResult } from "@phtheirichthys/phtheirichthys"
 import { useRacesStore } from './races'
 import { useNavigateStore } from './navigate'
 import * as phtheirichthys from '../lib/phtheirichthys'
+import { useWindStore } from "./wind"
 
 export const useRouteStore = defineStore('route', () => {
 
@@ -12,6 +13,7 @@ export const useRouteStore = defineStore('route', () => {
 
   const navigateStore = useNavigateStore()
   const racesStore = useRacesStore()
+  const windStore = useWindStore()
 
   const route: Ref<RouteResult | null> = ref(null)
 
@@ -22,7 +24,8 @@ export const useRouteStore = defineStore('route', () => {
 
   async function navigate(raceId:string) {
     let race = racesStore.get(raceId)!;
-    await phtheirichthys.navigate(toRaw(race), toRaw(navigateStore.options),
+    await windStore.isReady
+    await phtheirichthys.navigate(toRaw(race), toRaw(windStore.provider), toRaw(navigateStore.options),
       toRaw(navigateStore.position), toRaw(navigateStore.settings),
       toRaw(navigateStore.status),).then((res) => {
       route.value = res

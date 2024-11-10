@@ -1,0 +1,52 @@
+import { defineStore } from "pinia"
+import { ref, toRaw } from "vue"
+import * as phtheirichthys from '../lib/phtheirichthys'
+import { Coords, Wind } from "@phtheirichthys/phtheirichthys"
+
+export const useWindStore = defineStore('wind', () => {
+
+  console.log("Load Wind Store")
+
+  const ready = ref(false)
+
+  const provider = ref("vr")
+
+
+  let windResolve: () => void;
+  let isReady = new Promise<void>((resolve) => {
+      windResolve = resolve;
+  })
+
+  phtheirichthys.isLoaded().then(() => {
+    phtheirichthys.add_wind_provider(provider.value).then(() => {
+      console.log("Wind provider " + provider.value + " is ready")
+      ready.value = true
+      windResolve()
+    }).catch((e) => {
+      console.log("Error adding wind provider", e)
+    })
+  })
+
+  async function getWind(point: Coords, moment: Date = new Date()): Promise<Wind> {
+    await isReady
+    return phtheirichthys.get_wind(provider.value, point, moment)
+  }
+
+  function drawWind(canvas: OffscreenCanvas, m: Date, x: number, y: number, z: number, width: number, height: number) {
+    if (ready.value === true) {
+      phtheirichthys.draw_wind(toRaw(provider.value), canvas, m, x, y, z, width, height)
+    }
+  }
+
+  setInterval(() => {
+    console.log("refresh wind status")
+  }, 60000)
+
+
+  return {
+    provider,
+    isReady,
+    getWind,
+    drawWind,
+  }
+})
