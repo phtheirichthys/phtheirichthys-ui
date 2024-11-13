@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { computed, ref, Ref, toRaw } from "vue"
+import { ref, toRaw } from "vue"
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { Coords, Wind } from "@phtheirichthys/phtheirichthys"
 
