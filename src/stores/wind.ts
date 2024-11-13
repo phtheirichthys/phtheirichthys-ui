@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, toRaw } from "vue"
+import { computed, ref, Ref, toRaw } from "vue"
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { Coords, Wind } from "@phtheirichthys/phtheirichthys"
 
@@ -9,7 +9,9 @@ export const useWindStore = defineStore('wind', () => {
 
   const ready = ref(false)
 
-  const provider = ref("vr")
+  const provider = ref("noaa")
+
+  const status = ref<any | null>(null)
 
 
   let windResolve: () => void;
@@ -18,7 +20,8 @@ export const useWindStore = defineStore('wind', () => {
   })
 
   phtheirichthys.isLoaded().then(() => {
-    phtheirichthys.add_wind_provider(provider.value).then(() => {
+    phtheirichthys.add_wind_provider(provider.value).then(async () => {
+      await refresh()
       console.log("Wind provider " + provider.value + " is ready")
       ready.value = true
       windResolve()
@@ -38,13 +41,17 @@ export const useWindStore = defineStore('wind', () => {
     }
   }
 
-  setInterval(() => {
+  async function refresh() {
     console.log("refresh wind status")
-  }, 60000)
+    status.value = await phtheirichthys.get_wind_provider_status(provider.value)
+    console.log("the new status", status, status.value)
+  }
 
+  setInterval(refresh, 60000)
 
   return {
     provider,
+    status,
     isReady,
     getWind,
     drawWind,

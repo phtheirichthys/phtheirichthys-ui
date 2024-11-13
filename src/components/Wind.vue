@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import L from 'leaflet'
-import { onBeforeMount, onMounted, ref } from 'vue';
+import { computed, onBeforeMount, onMounted, ref } from 'vue';
 
 import { useWindStore } from '../stores/wind';
 
@@ -66,16 +66,38 @@ onMounted(() => {
   new WindLayer().addTo(windLayerControl)
 })
 
+const refTimes = computed(() => {
+  console.log("Compute ref times")
+
+  let res = new Array<string>()
+  if (!windStore.status) return res
+
+  console.log(windStore.status.forecasts.values())
+  for (let references of windStore.status.forecasts.values()) {
+    references.forEach((refTime: string) => {
+      if (!res.includes(refTime)) {
+        res.push(refTime)
+      }
+    })
+  }
+
+  console.log("Ref Times", res)
+  return res
+})
+
 </script>
 
 <template>
   <Teleport to="#wind-control">
-    <div class="forecast-times" :class="{expanded: !colapsed}">
+    <div v-if="windStore.status" class="forecast-times" :class="{expanded: !colapsed}">
       <div v-show="!colapsed" class="has-text-centered is-clickable" @click="colapsed = !colapsed">
         <i class="fas fa-caret-up"></i>
       </div>
       <div class="button is-small is-fullwidth is-white p-0">
         <div><i class="fas fa-wind"></i><span style="padding-left:5px">{{ windStore.provider }}</span></div>
+      </div>
+      <div class="button is-small is-fullwidth is-white p-0" v-for="refTime in refTimes" :key="refTime">
+          {{ new Date(refTime).getUTCHours().toString().padStart(2, "0") }}Z
       </div>
       <div class="button is-small is-fullwidth is-white p-0"></div>
       <div v-show="colapsed" class="has-text-centered is-clickable" @click="colapsed = !colapsed">

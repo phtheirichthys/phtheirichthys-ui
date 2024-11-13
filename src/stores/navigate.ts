@@ -57,7 +57,7 @@ export const useNavigateStore = defineStore('navigate', () => {
     ratio: 0,
     vmgs: undefined,
     penalties: { gybe: undefined, sail_change: undefined, tack: undefined },
-    stamina: 0,
+    stamina: 100,
   })
 
   const panZoom: Ref<PanZoom> = ref({
@@ -140,6 +140,7 @@ export const useNavigateStore = defineStore('navigate', () => {
     await windStore.isReady
     if (polarId.value) {
       status.value = await phtheirichthys.status(polarId.value, toRaw(windStore.provider), toRaw(options.value), toRaw(position.value), toRaw(settings.value))
+      status.value.stamina = 100
     }
   }
 

@@ -5,7 +5,7 @@ import init, * as phtheirichthys from '@phtheirichthys/phtheirichthys';
 
 export type EventData = ({ type: "load" } & { wasmUrl: string })
     | ({ type: "add-wind-provider" } & { uuid: string, provider: string })
-    | ({ type: "get-wind-provider-status" } & { provider: string })
+    | ({ type: "get-wind-provider-status" } & { uuid: string, provider: string })
     | ({ type: "get-wind" } & { uuid: string, provider: string, moment: Date, point: Point })
     | ({ type: "add-land-provider" })
     | ({ type: "draw-land" } & { canvas: OffscreenCanvas, provider: string, coords: { x: number, y: number, z: number }, size: { width: number, height: number } })
@@ -54,7 +54,7 @@ self.onconnect = async (event) => {
             case "add-wind-provider":
                 wasmReady.then((phtheirichthys: any) => {
                     //TODO : add provider as parameter
-                    phtheirichthys.add_wind_provider().then(() => {
+                    phtheirichthys.add_wind_provider(data.provider).then(() => {
                         port.postMessage({type: "add-wind-provider", uuid: data.uuid})
                     }).catch((e: any) => {
                         console.error("Error adding wind provider", data.provider, e)
@@ -69,7 +69,7 @@ self.onconnect = async (event) => {
                 wasmReady.then((phtheirichthys: any) => {
                     try {
                         let status = phtheirichthys.get_wind_provider_status(data.provider)
-                        port.postMessage({type: "wind-provider-status", data: status})
+                        port.postMessage({type: "wind-provider-status", uuid: data.uuid, data: status})
                     } catch(e) {
                         console.error("Error getting wind provider status", data.provider, e)
                     }

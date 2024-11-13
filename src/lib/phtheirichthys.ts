@@ -62,7 +62,7 @@ export function add_wind_provider(provider: string) {
 
         const message = {
             type: "add-wind-provider", uuid: request_uuid,
-            wind_provider: provider,
+            provider,
         }
 
         worker.port.postMessage(message)
@@ -70,17 +70,17 @@ export function add_wind_provider(provider: string) {
 }
 
 export function get_wind_provider_status(provider: string) {
-    console.log("Add wind provider", provider)
+    console.log("Get wind provider status", provider)
 
     return new Promise<void>((resolve, reject) => {
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
-            const { type, uuid } = message.data
+            const { type, uuid, data } = message.data
 
             if (uuid === request_uuid) {
                 worker.port.removeEventListener("message", handler)
-                if (type === "add-wind-provider") {
-                    resolve()
+                if (type === "wind-provider-status") {
+                    resolve(data)
                 } else {
                     const { error } = message.data
                     reject(error)
@@ -90,8 +90,7 @@ export function get_wind_provider_status(provider: string) {
         worker.port.addEventListener("message", handler)
 
         const message = {
-            type: "add-wind-provider", uuid: request_uuid,
-            wind_provider: provider,
+            type: "get-wind-provider-status", uuid: request_uuid, provider,
         }
 
         worker.port.postMessage(message)
