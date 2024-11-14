@@ -29,6 +29,9 @@ const snakingCmd = L.marker([snakeStore.last.from.lat, snakeStore.last.from.lon]
   .on("mousedown", onDragStart)
   .addTo(layer)
 
+const snakingTooltip = L.tooltip({offset: [-75, -75], permanent: true, className: "snaking-tooltip", direction: "center"})
+  .setLatLng([snakeStore.last.from.lat, snakeStore.last.from.lon])
+
 watch(() => snakeStore.last, () => {
   snakingCmd.setLatLng([snakeStore.last.from.lat, snakeStore.last.from.lon])
 
@@ -79,6 +82,7 @@ function onDragStart(event: any) {
 
   snakingCmd.setOpacity(0.3)
   snakingCmd.setIcon(bigIcon)
+  snakingCmd.bindTooltip(snakingTooltip)
 
   props.map.dragging.disable();
   props.map
@@ -130,6 +134,7 @@ function onDragEnd() {
   snakingCmd.setIcon(smallIcon)
 
   initialSnakingCmdHeading = null
+  snakingCmd.unbindTooltip()
 
   props.map
     .off("mousemove", onDrag)
@@ -175,6 +180,9 @@ function bearingTo(from: Coords, to: Coords) {
 
 function display(snakeHeading: number, snake: Snake) {
   snakeLayer.clearLayers()
+  
+  const tooltip = "<div><strong><i class='fa fa-compass'></i></strong> " + snakeHeading.toString() + "° <strong><i class='fa fa-location-arrow'></i></strong> " + (snake.twa[0].boat_settings.heading as {twa: number}).twa.toFixed(1).toString() + "°<div>"
+  snakingTooltip.setContent(tooltip)
   displaySnake(snakeHeading, snake.heading, false)
   displaySnake(snakeHeading, snake.twa, true)
 }
@@ -279,5 +287,9 @@ function displayProgs() {
 }
 .leaflet-div-icon.leaflet-twaline-icon.leaflet-touch-icon:hover {
   border: 6px solid transparent;
+}
+
+.snaking-tooltip::before {
+  border: none;
 }
 </style>

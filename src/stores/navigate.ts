@@ -114,7 +114,7 @@ export const useNavigateStore = defineStore('navigate', () => {
   }
 
   function setPosition(p: Point) {
-    position.value = p
+    position.value = new Point(p.lat, p.lon)
     Data.POSITION.setItem(toRaw(position.value), context.value!)
     updateStatus()
   }
