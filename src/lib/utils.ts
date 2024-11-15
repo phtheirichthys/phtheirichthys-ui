@@ -1,4 +1,4 @@
-import type { Coords, Heading, RouteWaypoint } from '@phtheirichthys/phtheirichthys'
+import type { Coords, Heading, RouteWaypoint, Sail } from '@phtheirichthys/phtheirichthys'
 
 export type SpeedUnit = "Knot" | "MeterPerSecond" | "KiloMeterPerHour"
 
@@ -96,7 +96,7 @@ export function getTooltipTitle(waypoint_date: Date, wayPosition: RouteWaypoint)
   let date = new Date(waypoint_date)
   date.setSeconds(date.getSeconds() + wayPosition.duration)
 
-  const delta = Math.abs(new Date(date).getTime() - new Date().getTime()) / 36e5;
+  const delta = Math.abs(date.getTime() - new Date().getTime()) / 36e5;
 
   var j = Math.floor(delta / 24)
   var h = Math.floor(delta % 24)
@@ -193,4 +193,14 @@ export function computeDestinationAndDeparture(port: Coords, starboard: Coords):
   }
 
   return {destination: destination, departure: departure}
+}
+
+export function sail_name(s: Sail): String {
+  const sails = ["Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG"];
+
+  let sail = sails[s.index]
+  if (s.auto === true) {
+    sail += "*"
+  }
+  return sail
 }

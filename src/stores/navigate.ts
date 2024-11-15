@@ -1,8 +1,7 @@
 import { defineStore } from "pinia"
 import { Ref, ref, toRaw } from "vue"
 import { Context, Data } from "../lib/data"
-import { Point } from "../lib/position"
-import { BoatOptions, BoatSettings, BoatStatus } from "@phtheirichthys/phtheirichthys"
+import { BoatOptions, BoatSettings, BoatStatus, Coords } from "@phtheirichthys/phtheirichthys"
 import { useRacesStore } from "./races"
 import { useBoatsStore } from "./boats"
 import * as phtheirichthys from '../lib/phtheirichthys'
@@ -36,8 +35,8 @@ export const useNavigateStore = defineStore('navigate', () => {
     winch: false,
     stamina: false,
   });
-
-  const position = ref(new Point(0, 0))
+  
+  const position = ref({lat: 0, lon: 0, start_time: new Date()})
 
   const settings: Ref<{
     heading: {heading: number} | {twa: number},
@@ -93,7 +92,8 @@ export const useNavigateStore = defineStore('navigate', () => {
       stamina: false,
     }
 
-    position.value = Data.POSITION.getItem(context.value) || (race ? Point.fromCoords(race.start) : new Point(0, 0))
+    position.value = Data.POSITION.getItem(context.value, (val) => val.start_time = new Date(val.start_time)) || (race ? {lat: race.start.lat, lon: race.start.lon, start_time: race.start_time || new Date()} : {lat: 0, lon: 0, start_time: new Date()})
+    console.log("the positions", position.value)
 
     settings.value = Data.SETTINGS.getItem(context.value) || {
       heading: { heading: 0 },
@@ -113,8 +113,14 @@ export const useNavigateStore = defineStore('navigate', () => {
     Data.PAN_ZOOM.setItem(toRaw(panZoom.value), context.value!)
   }
 
-  function setPosition(p: Point) {
-    position.value = new Point(p.lat, p.lon)
+  function setPosition(p: Coords, delay: number = 0) {
+    let start_time = new Date()
+    start_time.setMinutes(start_time.getMinutes() - 2 + delay)
+    start_time.setMilliseconds(0)
+    start_time.setSeconds(0)
+    // start_time.setMinutes(start_time.getMinutes() - start_time.getMinutes()%5)
+
+    position.value = {lat: p.lat, lon: p.lon, start_time}
     Data.POSITION.setItem(toRaw(position.value), context.value!)
     updateStatus()
   }
@@ -126,6 +132,7 @@ export const useNavigateStore = defineStore('navigate', () => {
   }
 
   function setSettings(s: BoatSettings) {
+    s.sail.index = s.sail.id - 1
     settings.value = s
     Data.SETTINGS.setItem(toRaw(settings.value), context.value!)
     updateStatus()
@@ -139,8 +146,9 @@ export const useNavigateStore = defineStore('navigate', () => {
   async function updateStatus() {
     await windStore.isReady
     if (polarId.value) {
-      status.value = await phtheirichthys.status(polarId.value, toRaw(windStore.provider), toRaw(options.value), toRaw(position.value), toRaw(settings.value))
+      status.value = await phtheirichthys.status(polarId.value, toRaw(windStore.provider), toRaw(options.value), toRaw(position.value), toRaw(position.value.start_time), toRaw(settings.value))
       status.value.stamina = 100
+      console.log("New Status", status.value)
     }
   }
 

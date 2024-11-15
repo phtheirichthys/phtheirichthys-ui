@@ -5,6 +5,7 @@ import { onMounted, watch } from 'vue'
 import L from 'leaflet'
 import { useSnakeStore } from '../../stores/snake'
 import * as utils from '../../lib/utils'
+import { useNavigateStore } from '../../stores/navigate'
 
 const props = defineProps<{
   polarId: string,
@@ -13,6 +14,7 @@ const props = defineProps<{
 }>()
 
 const snakeStore = useSnakeStore()
+const navigateStore = useNavigateStore()
 
 const layer = new L.LayerGroup()
 const snakeLayer = L.layerGroup().addTo(layer)
@@ -36,7 +38,7 @@ watch(() => snakeStore.last, () => {
   snakingCmd.setLatLng([snakeStore.last.from.lat, snakeStore.last.from.lon])
 
   snakeStore.get(snakeHeading).then((snake) => {
-    display(snakeHeading, snake)
+    display(snake)
   }).catch((e) => {
     console.error(e)
   })
@@ -71,7 +73,7 @@ onMounted(() => {
 
 })
 
-let snakeHeading = 0
+let snakeHeading = utils.heading(navigateStore.settings.heading, navigateStore.status.wind.direction)
 let initialSnakingCmdHeading: number | null = null
 
 function onDragStart(event: any) {
@@ -122,7 +124,7 @@ function onDrag(event: any) {
   while (snakeHeading >= 360) snakeHeading -= 360
 
   snakeStore.get(snakeHeading).then((snake) => {
-    display(snakeHeading, snake)
+    display(snake)
   }).catch((e) => {
     console.error(e)
   })
@@ -178,16 +180,16 @@ function bearingTo(from: Coords, to: Coords) {
   return wrap360(b)
 }
 
-function display(snakeHeading: number, snake: Snake) {
+function display(snake: Snake) {
   snakeLayer.clearLayers()
   
   const tooltip = "<div><strong><i class='fa fa-compass'></i></strong> " + snakeHeading.toString() + "° <strong><i class='fa fa-location-arrow'></i></strong> " + (snake.twa[0].boat_settings.heading as {twa: number}).twa.toFixed(1).toString() + "°<div>"
   snakingTooltip.setContent(tooltip)
-  displaySnake(snakeHeading, snake.heading, false)
-  displaySnake(snakeHeading, snake.twa, true)
+  displaySnake(snake.heading, false)
+  displaySnake(snake.twa, true)
 }
 
-function displaySnake(snakeHeading: number, waypoints: RouteWaypoint[], isTwa: boolean) {
+function displaySnake(waypoints: RouteWaypoint[], isTwa: boolean) {
   var color = "#3bdbd5"
   var icon = new L.DivIcon({
       iconSize: new L.Point(20, 20),
@@ -203,12 +205,17 @@ function displaySnake(snakeHeading: number, waypoints: RouteWaypoint[], isTwa: b
 
   let path = new Array<L.LatLng>()
 
-  waypoints.forEach((waypoint) => {
+  waypoints.forEach((waypoint, waypointIndex) => {
     const pt = waypoint.from
     L.marker([pt.lat, pt.lon], {icon: icon, zIndexOffset: isTwa ? 75 : 50})
       .bindTooltip(() => utils.getTooltipTitle(snakeStore.last_start_date, waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
       .on('click', () => {
-        snakeStore.addProg(snakeHeading, waypoint, isTwa)
+        if (waypointIndex == 0 && snakeStore.progs.length > 0) {
+          snakeHeading = snakeStore.progs[snakeStore.progs.length - 1].heading
+          snakeStore.unsetProg()
+        } else if (waypointIndex > 0) {
+          snakeStore.addProg(snakeHeading, waypoint, isTwa)
+        }
         displayProgs()
       })
       .addTo(snakeLayer)
@@ -242,6 +249,7 @@ function displayProgs() {
         .bindTooltip(() => utils.getTooltipTitle(prog.start_date, waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
         .on('click', () => {
           snakeStore.setProg(progIndex, waypointIndex)
+          displayProgs()
         })
         .addTo(progsLayer)
       path.push(new L.LatLng(pt.lat, pt.lon));

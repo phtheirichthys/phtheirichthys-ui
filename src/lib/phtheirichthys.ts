@@ -1,5 +1,4 @@
 import mitt from 'mitt'
-import { Point } from '../lib/position'
 import { v4 as uuidv4 } from 'uuid';
 
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys'
@@ -191,13 +190,13 @@ export async function test_webgpu() {
 
 }
 
-export async function navigate(race: phtheirichthys.Race, wind_provider: string, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus) {
+export async function navigate(race: phtheirichthys.Race, wind_provider: string, options: phtheirichthys.BoatOptions, position: phtheirichthys.Coords, start_time: Date, settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus) {
 
     console.log("navigate : ", options, position, settings, status)
 
     let request = {
         from: position,
-        start_time: new Date().toISOString(),
+        start_time: start_time.toISOString(),
         boat_settings: settings,
         status: status,
     }
@@ -234,10 +233,11 @@ export async function navigate(race: phtheirichthys.Race, wind_provider: string,
     })
 }
 
-export async function status(polarId: string, wind_provider: string, options: phtheirichthys.BoatOptions,  position: Point, settings: phtheirichthys.BoatSettings): Promise<phtheirichthys.BoatStatus> {
+export async function status(polarId: string, wind_provider: string, options: phtheirichthys.BoatOptions, position: phtheirichthys.Coords, start_time: Date, settings: phtheirichthys.BoatSettings): Promise<phtheirichthys.BoatStatus> {
 
     let request = {
         from: position,
+        start_time: start_time.toISOString(),
         boat_settings: settings,
     }
 

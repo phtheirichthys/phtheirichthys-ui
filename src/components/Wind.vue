@@ -76,8 +76,6 @@ onMounted(() => {
 })
 
 const refTimes = computed(() => {
-  console.log("Compute ref times")
-
   const forecasts = [0, 1, 2, 3, 4, 5, 6, 9, 12, 24, 36, 48, 72, 96, 120, 144, 168]
   let f = 0
   let f_date = new Date(now.value)
@@ -89,25 +87,27 @@ const refTimes = computed(() => {
   let prev: string | null = null
   windStore.status.forecasts.forEach((references: any[], forecast: string | number | Date) => {
     let ref = references.map((r) => new Date(r).getUTCHours().toString().padStart(2, "0") + "Z").join("-")
-    console.log(ref)
     if (ref !== prev) {
       prev = ref
 
       if (res.length > 0) {
         let forecast_time = new Date(forecast)
-        console.log("f_date < forecast_time", f, f_date, forecast_time)
         while (f_date < forecast_time) {
           res[res.length - 1].forecasts.push({forecast: forecasts[f], date: f_date, display: display(forecasts[f])})
           f += 1
           f_date = new Date(now.value)
           f_date.setHours(f_date.getHours() + forecasts[f])
-          console.log("f_date < forecast_time", f, f_date, forecast_time)
         }
       }
 
       res.push({
         refTime: ref,
+        files: references.map((r) => new Date(r).getUTCHours().toString().padStart(2, "0") + "." + ((new Date(forecast).getTime() - new Date(r).getTime()) / (1000 * 60 * 60)).toString().padStart(3, "0") + "Z"),
         forecasts: []
+      })
+    } else {
+      references.forEach((r) => {
+        res[res.length - 1].files.push(new Date(r).getUTCHours().toString().padStart(2, "0") + "." + ((new Date(forecast).getTime() - new Date(r).getTime()) / (1000 * 60 * 60)).toString().padStart(3, "0") + "Z")
       })
     }
   })
@@ -118,8 +118,6 @@ const refTimes = computed(() => {
 
     res[res.length - 1].forecasts.push({forecast: forecasts[i], date: f_date, display: display(forecasts[i])})
   }
-
-  console.log("RefTimes", res)
 
   return res
 })
@@ -152,7 +150,7 @@ function select(forecast_date: Date) {
         <div><i class="fas fa-wind"></i><span style="padding-left:5px">{{ windStore.provider }}</span></div>
       </div>
       <div v-for="r in refTimes" :key="r.refTime" class="m-0 is-gapless" :class="{'ref': !colapsed}">
-        <div v-show="!colapsed" class="p-0 has-text-centered has-text-weight-bold ref-time" >
+        <div v-show="!colapsed" class="p-0 has-text-centered has-text-weight-bold ref-time has-tooltip-left has-tooltipl-multiline" :data-tooltip='r.files.join("\n")' >
           {{ r.refTime }}
         </div>
         <div class="is-clickable is-unselectable">
@@ -192,5 +190,10 @@ div.leaflet-top.leaflet-right {
     color: #fff;
     background-color: #3388ff;
     opacity: 0.5;
+}
+
+left::before, [data-tooltip]:not([disabled]).has-tooltip-left::before {
+  bottom: 15px;
+  transform: translate(-100%,100%);
 }
 </style>

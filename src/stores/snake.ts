@@ -8,7 +8,8 @@ import { useWindStore } from "./wind"
 interface Prog {
   start_date: Date,
   waypoints: RouteWaypoint[],
-  isTwa: boolean
+  isTwa: boolean,
+  heading: number,
 }
 
 export const useSnakeStore = defineStore('snake', () => {
@@ -19,46 +20,13 @@ export const useSnakeStore = defineStore('snake', () => {
   const snake = ref(new Array<Snake>())
   const progs = ref(new Array<Prog>())
 
-  const last: Ref<RouteWaypoint> = ref({
-    from: navigateStore.position,
-    duration: 0,
-    way_duration: 0,
-    boat_settings: navigateStore.settings,
-    status: {
-      boat_speed: navigateStore.status.boat_speed,
-      wind: navigateStore.status.wind,
-      foil: navigateStore.status.foil,
-      boost: navigateStore.status.boost,
-      best_ratio: navigateStore.status.best_ratio,
-      ice: false,
-      change: false,
-      penalties: [],
-      remaining_penalties: [],
-      stamina: navigateStore.status.stamina,
-      remaining_stamina: 0,
-    },
-  })
-  const last_start_date = ref(new Date())
+  const last: Ref<RouteWaypoint> = ref(init_last())
+  let last_start_date = ref(new Date(navigateStore.position.start_time))
+
   watch([() => navigateStore.position, () => navigateStore.settings, () => navigateStore.status], () => {
-    last.value = {
-      from: navigateStore.position,
-      duration: 0,
-      way_duration: 0,
-      boat_settings: navigateStore.settings,
-      status: {
-        boat_speed: navigateStore.status.boat_speed,
-        wind: navigateStore.status.wind,
-        foil: navigateStore.status.foil,
-        boost: navigateStore.status.boost,
-        best_ratio: navigateStore.status.best_ratio,
-        ice: false,
-        change: false,
-        penalties: [],
-        remaining_penalties: [],
-        stamina: navigateStore.status.stamina,
-        remaining_stamina: 0,
-      },
-    }
+    last.value = init_last()
+    last_start_date.value = new Date(navigateStore.position.start_time)
+    
     snake.value = new Array<Snake>()
   })
 
@@ -106,7 +74,6 @@ export const useSnakeStore = defineStore('snake', () => {
         })
       }
     })
-
   }
 
   function addProg(h: number, wp: RouteWaypoint, isTwa: boolean) {
@@ -117,24 +84,76 @@ export const useSnakeStore = defineStore('snake', () => {
       wps = snake.value[h].heading
     }
 
-    const prog = { start_date: new Date(last_start_date.value), waypoints: wps.filter((a) => a.duration <= wp.duration), isTwa }
+    const prog = { start_date: new Date(last_start_date.value), waypoints: wps.filter((a) => a.duration <= wp.duration), isTwa, heading: h }
     progs.value.push(prog)
+
     last_start_date.value.setSeconds(last_start_date.value.getSeconds() + wp.duration)
-    last.value = wp // TODO : stocker le status aussi pour envoie lors du calcul du serpent...
+
+    last.value = wp
     snake.value = new Array<Snake>()
   }
 
   function setProg(progIndex: number, waypointIndex: number) {
-    progs.value = progs.value.slice(0, progIndex + 1)
-    progs.value[progs.value.length - 1].waypoints = progs.value[progs.value.length - 1].waypoints.slice(0, waypointIndex + 1)
-    last.value = progs.value[progs.value.length - 1].waypoints[progs.value[progs.value.length - 1].waypoints.length - 1]
+    if (progIndex == 0 && waypointIndex == 0) {
 
-    let last_prog_date = new Date(progs.value[progs.value.length - 1].start_date)
-    last_prog_date.setSeconds(last_prog_date.getSeconds() + last.value.duration)
-    last_start_date.value = last_prog_date
+      last_start_date.value = new Date(navigateStore.position.start_time.getTime())
+      last.value = init_last()
+      progs.value = []
+
+    } else {
+
+      progs.value = progs.value.slice(0, progIndex + 1)
+      progs.value[progs.value.length - 1].waypoints = progs.value[progs.value.length - 1].waypoints.slice(0, waypointIndex + 1)
+      last.value = progs.value[progs.value.length - 1].waypoints[progs.value[progs.value.length - 1].waypoints.length - 1]
+  
+      let last_prog_date = new Date(progs.value[progs.value.length - 1].start_date.getTime())
+      last_prog_date.setSeconds(last_prog_date.getSeconds() + last.value.duration)
+      last_start_date.value = new Date(last_prog_date.getTime())
+    }
 
     snake.value = new Array<Snake>()
   }
+
+  function unsetProg() {
+    if (progs.value.length > 0) {
+      progs.value = progs.value.slice(0, progs.value.length - 1)
+      if (progs.value.length > 0) {
+        last.value = progs.value[progs.value.length - 1].waypoints[progs.value[progs.value.length - 1].waypoints.length - 1]
+
+        let last_prog_date = new Date(progs.value[progs.value.length - 1].start_date.getTime())
+        last_prog_date.setSeconds(last_prog_date.getSeconds() + last.value.duration)
+        last_start_date.value = new Date(last_prog_date.getTime())
+      } else {
+        last.value = init_last()
+        last_start_date.value = new Date(navigateStore.position.start_time.getTime())
+      }
+  
+      snake.value = new Array<Snake>()
+    }
+  }
+
+  function init_last() {
+    return {
+      from: navigateStore.position,
+      duration: 0,
+      way_duration: 0,
+      boat_settings: navigateStore.settings,
+      status: {
+        boat_speed: navigateStore.status.boat_speed,
+        wind: navigateStore.status.wind,
+        foil: navigateStore.status.foil,
+        boost: navigateStore.status.boost,
+        best_ratio: navigateStore.status.best_ratio,
+        ice: false,
+        change: false,
+        penalties: [],
+        remaining_penalties: [],
+        stamina: navigateStore.status.stamina,
+        remaining_stamina: 0,
+      },
+    }
+  }
+
 
   return {
     get,
@@ -143,5 +162,6 @@ export const useSnakeStore = defineStore('snake', () => {
     progs,
     addProg,
     setProg,
+    unsetProg,
   }
 })

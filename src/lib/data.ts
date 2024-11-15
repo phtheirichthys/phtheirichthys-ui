@@ -32,7 +32,7 @@ export class Data {
         return key
     }
 
-    getItem<T>(ctx: Context = {boat: null, race: null}): T | null {
+    getItem<T>(ctx: Context = {boat: null, race: null}, post?: (val: any) => void): T | null {
         function reviver(_key: string, value: any) {
             if(typeof value === 'object' && value !== null) {
                 if (value.dataType === 'Map') {
@@ -48,7 +48,12 @@ export class Data {
             item = item ? decompress(item) : null
         }
 
-        return item ? JSON.parse(item, reviver) as T : null;    
+        let res = item ? JSON.parse(item, reviver) as T : null;    
+        if (post) {
+            post(res)
+        }
+        
+        return res
     }
 
     setItem<T>(value: T, ctx: Context = {boat: null, race: null}): void {

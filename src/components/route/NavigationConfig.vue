@@ -101,14 +101,14 @@ function setTwa(t: boolean) {
         <label class="label">Sail</label>
         <div class="control">
           <div class="select is-small">
-            <select v-model.number="settings.sail.index">
-              <option value="0">Jib</option>
-              <option value="1|0|1">>Spi</option>
-              <option value="3">Génois Léger</option>
-              <option value="6">Spi Léger</option>
-              <option value="4">Code 0</option>
-              <option value="2">Trinquette</option>
-              <option value="5">Spi Lourd</option>
+            <select v-model.number="settings.sail.id">
+              <option value="1">Jib</option>
+              <option value="2">>Spi</option>
+              <option value="4">Génois Léger</option>
+              <option value="7">Spi Léger</option>
+              <option value="5">Code 0</option>
+              <option value="3">Trinquette</option>
+              <option value="6">Spi Lourd</option>
             </select>
           </div>
         </div>

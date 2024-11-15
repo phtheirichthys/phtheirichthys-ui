@@ -11,8 +11,9 @@ import Wind from '../Wind.vue'
 import Route from './Route.vue'
 import NavigationConfig from './NavigationConfig.vue'
 import Polar from './Polar.vue'
+import Table from './Table.vue'
 
-import { ref, onMounted, Ref, onBeforeMount, watch } from 'vue'
+import { ref, onMounted, onBeforeMount, watch, computed } from 'vue'
 import { Point } from '../../lib/position';
 import { useRouteStore } from '../../stores/route'
 import { useNavigateStore } from '../../stores/navigate'
@@ -51,16 +52,29 @@ phtheirichthys.isLoaded().then(() => {
 const navigating = ref(false)
 
 var legend = ref(L.DomUtil.create("div", "leaflet-control-velocity"))
+legend.value.setAttribute("id", "legend")
 
 const map = new L.Map("map", {zoomControl: true, worldCopyJump: false})
 const layerControl = L.control.layers()
 const landLayerControl = L.layerGroup()
 
-var wind: Ref<InstantWind | null> = ref(null)
+var wind = ref<InstantWind | null>(null)
+var cursor = ref<Point | null>(null)
 
 onBeforeMount(() => {
   navigateStore.load(props.boat, props.race)
   routeStore.load()
+
+  let VelocityControl = L.Control.extend({
+    onAdd: function() {
+      return legend.value
+    },
+    onRemove: function() {
+    },
+  })
+  let velocityControl = new VelocityControl()
+  velocityControl.setPosition("bottomleft")
+  velocityControl.addTo(map)
 
   map.setView(navigateStore.panZoom.pan, navigateStore.panZoom.zoom)
 })
@@ -75,17 +89,6 @@ onMounted(() => {
     layerControl.addTo(map)
 
     layerControl.addOverlay(landLayerControl, "<i class='fas fa-globe-europe'></i> Land");
-
-    let VelocityControl = L.Control.extend({
-      onAdd: function() {
-        return legend.value
-      },
-      onRemove: function() {
-      },
-    })
-    let velocityControl = new VelocityControl()
-    velocityControl.setPosition("bottomleft")
-    velocityControl.addTo(map)
 
     map.on("mousemove", (event) => {
       let latlng = map.containerPointToLatLng(L.point(event.containerPoint.x, event.containerPoint.y))
@@ -104,7 +107,24 @@ onMounted(() => {
       closeButton: true,    // whether t add a close button to the panes
       container: 'sidebar', // the DOM container or #ID of a predefined sidebar container that should be used
       position: 'left',     // left or right
-    }).addTo(map);
+    })
+    .on("content", (e: any) => {
+      if (e.id == "table") {
+        if (!L.DomUtil.hasClass(e.target._container, 'extended')) {
+          console.log("add extended class")
+          L.DomUtil.addClass(e.target._container, 'extended')
+        }
+      }
+      sidebar.value = e.id
+    })
+    .on("closing", (e: any) => {
+      if (L.DomUtil.hasClass(e.target._container, 'extended')) {
+        console.log("remove extended class")
+        L.DomUtil.removeClass(e.target._container, 'extended')
+      }
+      sidebar.value = null
+    })
+    .addTo(map);
 
   })
 })
@@ -113,25 +133,7 @@ function onMouseMove(point: Point) {
   windStore.getWind(point).then((w) => {
     wind.value = w
   })
-  displayLegend(point)
-}
-
-function displayLegend(point: Point) {
-  //const pad = (num: number, places: number) => String(num).padStart(places, '0')
-  if (legend.value) {
-    var leg = ""
-    // if (this.snake) {
-    //   leg += "<div><strong><i class='fa fa-compass'></i></strong> " + this.snake.bearing + "° <strong><i class='fa fa-location-arrow'></i></strong> " + this.snake.twa.toFixed(1) + "°<div>"
-    // }
-    if (wind.value) {
-      leg += "<div><strong><i class='fa fa-wind'></i> </strong>" + wind.value.direction.toFixed(1) + "° " + wind.value.speed.toFixed(1) + "kt</div>"
-    }
-
-    var lat = utils.dd2dms(point.lat)
-    var lon = utils.dd2dms(point.lon)
-    leg += "<div>" + utils.lat2string(lat) + " - " + utils.lon2string(lon) + "</div>"
-    legend.value.innerHTML = leg
-  }
+  cursor.value = point
 }
 
 function center() {
@@ -170,6 +172,7 @@ function test_webgpu() {
   })
 }
 
+const sidebar = ref<String | null>(null)
 const sidebarContentWidth = ref(0)
 const sidebarContentHeight = ref(0)
 
@@ -179,10 +182,24 @@ onMounted(() => {
   sidebarContentWidth.value = element.clientWidth
   sidebarContentHeight.value = element.clientHeight
   new ResizeObserver((sidebarContent) => {
-    sidebarContentWidth.value = sidebarContent[0].contentRect.width
-    sidebarContentHeight.value = sidebarContent[0].contentRect.height
+    if (sidebar.value == "polars") {
+      sidebarContentWidth.value = sidebarContent[0].contentRect.width
+      sidebarContentHeight.value = sidebarContent[0].contentRect.height
+    }
   }).observe(sidebarContent.value)
 })
+
+const sail = computed(() => {
+
+  return utils.sail_name(navigateStore.settings.sail)
+})
+
+function opacity(v: number) {
+  let val = 255 * v / 100
+  return {
+    opacity: `${val}%`
+  }
+}
 
 </script>
 
@@ -219,6 +236,9 @@ onMounted(() => {
       <div class="leaflet-sidebar-pane" id="home">
         <NavigationConfig />
       </div>
+      <div class="leaflet-sidebar-pane" id="table">
+        <Table :display="sidebar == 'table'" />
+      </div>
       <div class="leaflet-sidebar-pane" id="polars">
         <Polar v-if="polarId" :polarId="polarId" :parentWidth="sidebarContentWidth" :parentHeight="sidebarContentHeight" />
       </div>
@@ -227,9 +247,45 @@ onMounted(() => {
       </div>
     </div>  
   </div>
+  <Teleport to="#legend">
+    <div>
+      <span><strong><i class='fa fa-compass'></i></strong> {{ utils.heading(navigateStore.settings.heading, navigateStore.status.wind.direction) }}</span>
+      <span style="padding-left:7px;"><strong><i class='fa fa-location-arrow'></i></strong> {{ utils.twa(navigateStore.settings.heading, navigateStore.status.wind.direction).toFixed(1) }}°</span>
+      <span class="sail" style="padding-left:7px;">{{ sail }}</span>
+      <!-- <span v-if="navigateStore.status.ice" class='ice'><i class='fas fa-igloo'></i></span> -->
+      <span v-if="navigateStore.status.foil > 0" class='foil' :style='opacity(navigateStore.status.foil)'><i class='fa fa-fighter-jet'></i></span>
+      <span v-if="navigateStore.status.boost > 0" class='foil' :style='opacity(navigateStore.status.boost)'><i class='fa fa-rocket'></i></span>
+    </div>
+    <div>
+      <span><i class='fa fa-wind'></i> {{ navigateStore.status.wind.direction.toFixed(1) }}° {{ navigateStore.status.wind.speed.toFixed(1) }}kt</span>
+      <span style="padding-left:7px;"><i class='fa fa-ship'></i> {{ navigateStore.status.boat_speed.toFixed(1) }}kt</span>
+    </div>
+<!-- 
+  if(wayPosition.status.ice) {
+    primary += "<span class='ice'><i class='fas fa-igloo'></i></span>"
+  } else if(wayPosition.status.foil > 0) {
+  //   //primary += "<span class='foil' style='color:rgb(255," + 255 * (wl.foil / 100) + "," + 255 * (wl.foil / 100) + ");'><i class='fa fa-fighter-jet'></i></span>"
+    primary += "<span class='foil' style='opacity:" + (wayPosition.status.foil) + "%;'><i class='fa fa-fighter-jet'></i></span>"
+  }
+  if(wayPosition.status.boost > 0) {
+    primary += "<span class='foil' style='opacity:" + (wayPosition.status.boost) + "%;'><i class='fa-solid fa-rocket'></i></span>"
+  }
+  const secondary = "<i class='fa fa-wind'></i> " + wayPosition.status.wind.direction.toFixed(1) + "° " + wayPosition.status.wind.speed.toFixed(1) + "kt <i class='fa fa-ship'></i> " + wayPosition.status.boat_speed.toFixed(1) + "kt";
+
+  var res = '<div class="date"><span>' + d + '</span><span class="hour">' + hrs + ":" + min + '</span></div><div class="primary">' + primary + '</div>'
+  if(secondary)
+    res += '<div class="secondary">' + secondary + '</div>'; -->
+
+
+
+    <div v-if="wind || cursor" style="border-top:2px solid #ccc;">
+      <div v-if="cursor">{{ utils.lat2string(utils.dd2dms(cursor.lat)) + " - " + utils.lon2string(utils.dd2dms(cursor.lon)) }}</div>
+      <div v-if="wind"><strong><i class='fa fa-wind'></i></strong> {{ wind.direction.toFixed(1) + "° " + wind.speed.toFixed(1) }}kt</div>
+    </div>
+  </Teleport>
 </template>
 
-<style>
+<style scoped>
 @media (max-height: 460px) {
   .bottom {
     visibility: hidden;
@@ -347,6 +403,14 @@ onMounted(() => {
 }
 .leaflet-bottom .leaflet-control-velocity {
   margin-bottom: 10px !important;
+}
+
+.sail {
+  font-weight: bold;
+}
+
+.foil {
+  float: right;
 }
 
 </style>

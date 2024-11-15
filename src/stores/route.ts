@@ -26,7 +26,7 @@ export const useRouteStore = defineStore('route', () => {
     let race = racesStore.get(raceId)!;
     await windStore.isReady
     await phtheirichthys.navigate(toRaw(race), toRaw(windStore.provider), toRaw(navigateStore.options),
-      toRaw(navigateStore.position), toRaw(navigateStore.settings),
+      toRaw(navigateStore.position), toRaw(navigateStore.position.start_time), toRaw(navigateStore.settings),
       toRaw(navigateStore.status),).then((res) => {
       route.value = res
       Data.ROUTE.setItem(res, navigateStore.context!)

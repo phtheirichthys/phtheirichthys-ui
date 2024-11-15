@@ -11,6 +11,7 @@ app.use(pinia)
 
 import 'bulma/css/bulma.css'
 import 'bulma-slider/dist/css/bulma-slider.min.css'
+import '@creativebulma/bulma-tooltip/dist/bulma-tooltip.min.css'
 
 import 'leaflet/dist/leaflet.css'
 import 'leaflet-extra-markers/dist/css/leaflet.extra-markers.min.css'
