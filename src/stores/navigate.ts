@@ -92,7 +92,7 @@ export const useNavigateStore = defineStore('navigate', () => {
       stamina: false,
     }
 
-    position.value = Data.POSITION.getItem(context.value, (val) => val.start_time = new Date(val.start_time)) || (race ? {lat: race.start.lat, lon: race.start.lon, start_time: race.start_time || new Date()} : {lat: 0, lon: 0, start_time: new Date()})
+    position.value = Data.POSITION.getItem(context.value, (val) => { if (val) { val.start_time = new Date(val.start_time) } }) || (race ? {lat: race.start.lat, lon: race.start.lon, start_time: race.start_time || new Date()} : {lat: 0, lon: 0, start_time: new Date()})
     console.log("the positions", position.value)
 
     settings.value = Data.SETTINGS.getItem(context.value) || {
