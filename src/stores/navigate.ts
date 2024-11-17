@@ -57,6 +57,7 @@ export const useNavigateStore = defineStore('navigate', () => {
     vmgs: undefined,
     penalties: { gybe: undefined, sail_change: undefined, tack: undefined },
     stamina: 100,
+    ice: false,
   })
 
   const panZoom: Ref<PanZoom> = ref({

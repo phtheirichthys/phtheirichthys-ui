@@ -66,6 +66,7 @@ export class BoatConfig {
       vmgs: undefined,
       penalties: { gybe: undefined, sail_change: undefined, tack: undefined },
       stamina: 0,
+      ice: false,
     }
   }
 }

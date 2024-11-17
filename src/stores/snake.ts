@@ -60,6 +60,7 @@ export const useSnakeStore = defineStore('snake', () => {
               tack: undefined
             },
             stamina: toRaw(last.value.status.stamina),
+            ice: false,
           }, {heading: h}).then((snake_result) => {
           
             snake.value[h] = snake_result
