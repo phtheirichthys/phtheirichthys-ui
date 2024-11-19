@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouteStore } from '../../stores/route';
+import { ref, watch } from 'vue';
+import { useRouteStore, emitter as routeEmitter } from '../../stores/route';
 import { useSnakeStore } from '../../stores/snake';
-import { RouteWaypoint, Sail } from '@phtheirichthys/phtheirichthys';
+import { Penalty, RouteWaypoint, Sail } from '@phtheirichthys/phtheirichthys';
 import * as utils from '../../lib/utils';
 
 const props = defineProps<{
   display: boolean
 }>()
-
 
 const routeStore = useRouteStore()
 const snakeStore = useSnakeStore()
@@ -20,13 +19,18 @@ const eta = ref(true)
 //   return Math.floor(duration / 24) * 24 + Math.round(duration % 24)
 // }
 
-function highlight(_wp: RouteWaypoint) {
-  // EventBus.$emit('highlight', wp.date)
+function highlight(date: Date) {
+  if (table.value == "route") {
+    routeEmitter.emit("highlight", date)
+  }
 }
 
-function unhighlight(_wp: RouteWaypoint) {
-  // EventBus.$emit('unhighlight', wp.date)
+function unhighlight(date: Date) {
+  if (table.value == "route") {
+    routeEmitter.emit("unhighlight", date)
+  }
 }
+
 
 function sailClass(sail: Sail) {
   const sails = ["Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG"];
@@ -34,139 +38,149 @@ function sailClass(sail: Sail) {
   return sails[sail.index]
 }
 
-// methods: {
-//     ,
-//     formatHours: function(duration) {
-//       return Math.floor(duration / 24) * 24 + Math.round(duration % 24)
-//     },
-//     formatEta: function(delta) {
-//       var d = delta > 0?"+":"-"
+interface Line {
+  duration: number
+  current: boolean
+  outdated: boolean
+  eta: number
+  date: Date
+  heading: number
+  twa: number
+  wp: RouteWaypoint
+}
 
-//       delta = Math.abs(delta)
-//       var j = Math.floor(delta / 24)
-//       var h = Math.floor(delta % 24)
-//       var m = Math.round(60 * (delta - j * 24 - h))
-//       if (m == 60) {
-//         m = 0
-//         h ++
-//       }
-//       if (h == 24) {
-//         h = 0
-//         j ++
-//       }
+const route = ref<Array<Line> | null>(null)
+const progs = ref<Array<Line> | null>(null)
 
-//       if(j > 0) {
-//         d += j + "j"
-//       }
-//       if(h > 0) {
-//         d += String(h).padStart(2, ' ') + "h"
-//       }
-//       if(m > 0) {
-//         d += String(m).padStart(2, ' ') + "m"
-//       }
+compute_route()
+watch(() => routeStore.route, () => {
+  compute_route()
+})
 
-//       return d
-//     },
-//     formatPenalties: function(penalties) {
-//       if (!penalties || penalties.length == 0) {
-//         return ""
-//       }
+function compute_route() {
+  if (routeStore.route) {
+    route.value = compute([[routeStore.route.way, routeStore.route.infos.start]])
+  } else {
+    route.value = null
+  }
+}
 
-//       var res = ""
+compute_progs()
+watch(() => snakeStore.progs, () => {
+  compute_progs()
+}, {deep: true})
 
-//       for (var p in penalties) {
-//         const minutes = (penalties[p].DurationSec / 60).toFixed(0)
-//         const secondes = String(penalties[p].DurationSec % 60).padStart(2, '0')
+function compute_progs() {
+  if (snakeStore.progs && snakeStore.progs.length > 0) {
+    let ps = new Array<[Array<RouteWaypoint>, Date]>
+    for (let p of snakeStore.progs) {
+      ps.unshift([p.waypoints, p.start_date])
+    }
+    progs.value = compute(ps)
+  } else {
+    progs.value = null
+  }
+}
 
-//         if (res.length > 0) {
-//           res += " - "
-//         }
+function compute(sources: Array<[Array<RouteWaypoint>, Date]>): Array<Line> {
+  const now = new Date()
 
-//         res += minutes+"'"+secondes+"\" " + (penalties[p].Ratio * 100).toFixed(0) + "%"
-//       }
+  let res = []
+  let currentFounded = false
 
-//       return res
-//     },
-//     addLines: function(route, lines, isTwa) {
-//       this.loading = true
-//       const pad = (num, places) => String(num).padStart(places, '0')
+  for (let [source, start] of sources) {
+    for (let i = source.length - 1; i >= 0 ; i--) {
+      const wp = source[i]
 
-//       const sails = ["Jib", "Spi", "Stay", "LJ", "C0", "HG", "LG"];
+      let date = new Date(start)
+      date.setSeconds(date.getSeconds() + wp.duration);
 
-//       for (var i = 0 ; i < Math.min(500, route.windline.length) ; i++) {
-//         const wl = route.windline[i]
+      const eta = (date.getTime() - now.getTime())
 
-//         var date = new Date(route.date.getTime())
-//         date.setMinutes(date.getMinutes() + wl.duration * 60);
+      let current = false
+      if (eta <= 0 && !currentFounded) {
+        current = eta <= 0
+        currentFounded = true
+      }
+      const outdated = eta <= 0 && !current
+      res.unshift({
+        current,
+        outdated,
+        eta: (date.getTime() - now.getTime()) / 1000,
+        duration: wp.duration,
+        date,
+        heading: utils.heading(wp.boat_settings.heading, wp.status.wind.direction),
+        twa: utils.twa(wp.boat_settings.heading, wp.status.wind.direction),
+        wp,
+      })
+    }
+  }
 
-//         const delta = (date - new Date()) / 36e5;
+  return res
+}
 
-//         var year = date.getFullYear();
-//         var month = pad(date.getMonth() + 1, 2);
-//         var day = pad(date.getDate(), 2);
-//         var hrs = pad(date.getHours(), 2);
-//         var min = pad(date.getMinutes(), 2);
+function formatDuration(duration: number): String {
+  var d = duration > 0 ? "+" : "-"
 
-//         var lat = this.convertDDToDMS(wl.lat)
-//         var lon = this.convertDDToDMS(wl.lon)
+  let delta = Math.abs(duration / 3600)
+  var j = Math.floor(delta / 24)
+  var h = Math.floor(delta % 24)
+  var m = Math.round(60 * (delta - j * 24 - h))
+  if (m == 60) {
+    m = 0
+    h ++
+  }
+  if (h == 24) {
+    h = 0
+    j ++
+  }
 
-//         var current = delta <= 0 && (!lines[0] || !lines[0].outdated && !lines[0].current)
-//         lines.unshift({
-//           outdated: delta < 0 && !current,
-//           current:  current,
-//           duration: this.formatEta(wl.duration),
-//           eta: this.formatEta(delta),
-//           date: year + "-" + month + "-" + day + " " + hrs + ":" + min,
-//           bearing: wl.bearing.toFixed(4),
-//           twa: wl.twa.toFixed(4),
-//           dlat: wl.lat,
-//           dlon: wl.lon,
-//           lat: pad(lat.d, 2) + "°" + (lat.p < 0 ? "S" : "N") + " " + pad(lat.m, 2) + "'" + pad(lat.s, 2) + "\"",
-//           lon: pad(lon.d, 2) + "°" + (lon.p < 0 ? "W" : "E") + " " + pad(lon.m, 2) + "'" + pad(lon.s, 2) + "\"",
-//           sail: sails[wl.sail],
-//           foil: wl.foil,
-//           boost: wl.boost,
-//           wind: wl.wind.toFixed(4),
-//           windSpeed: wl.windSpeed.toFixed(4),
-//           boatSpeed: wl.boatSpeed.toFixed(4),
-//           penalty: this.formatPenalties(wl.penalties),
-//           isTwa: isTwa,
-//           wl: wl
-//         })
-//       }
-//       this.loading = false
-//     },
-//     onRoute(route) {
-//       this.route = route
-//       this.lines = []
-//       this.addLines(route, this.lines)
-//     },
-//     onProgs(progs) {
-//       console.log(progs)
-//       this.progs = progs
-//       this.progsLine = []
-//       for(var p = progs.length - 1; p >= 0; p--) {
-//         var progLine = []
-//         for(var j = 0; j < progs[p].line.length - 1; j++) {
-//           progLine.unshift(progs[p].line[j])
-//         }
-//         this.addLines({date: progs[p].line[0].date, windline: progLine}, this.progsLine, progs[p].isTwa)
-//       }
-//     },
-//     refresh() {
-//       if(this.table == "route") {
-//         this.displayRoute()
-//         this.lines = []
-//         if (this.route)
-//           this.addLines(this.route, this.lines)
-//       } else if(this.table == "progs") {
-//         this.displayProgs()
-//         if (this.progs)
-//           this.onProgs(this.progs)
+  if(j > 0) {
+    d += j + "j"
+  }
+  if(h > 0) {
+    d += String(h).padStart(2, ' ') + "h"
+  }
+  if(m > 0) {
+    d += String(m).padStart(2, ' ') + "m"
+  }
 
-//       }
-//     },
-//   }
+  return d
+}
+
+function formatDate(date: Date): String {
+  return date.getFullYear().toString() + "-" + date.getMonth().toString().padStart(2, "0") + date.getDay().toString().padStart(2, "0") + " " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0")
+}
+
+function formatPenalties(penalties: Penalty[]) {
+  if (!penalties || penalties.length == 0) {
+    return ""
+  }
+
+  var res = ""
+
+  for (var p of penalties) {
+    let type = ""
+    if (p.typ == 1) {
+      type = "Gybe"
+    } else if (p.typ== 2) {
+      type = "Tack"
+    } else if (p.typ == 4) {
+      type = "Sail"
+    }
+
+    const minutes = (p.duration / 60).toFixed(0)
+    const secondes = String(p.duration % 60).padStart(2, '0')
+
+    if (res.length > 0) {
+      res += " - "
+    }
+
+    res += type + ": " + minutes+"'"+secondes+"\" " + (p.ratio * 100).toFixed(0) + "%"
+  }
+
+  return res
+}
 
 </script>
 
@@ -214,7 +228,7 @@ function sailClass(sail: Sail) {
         </ul>
       </div>
 
-      <table v-if="routeStore.route" v-show="table == 'route'" class="table is-fullwidth is-narrow is-bordered monospace" style="white-space: nowrap;">
+      <table v-if="table == 'route' && routeStore.route || table == 'progs' && snakeStore.progs" class="table is-fullwidth is-narrow is-bordered monospace" style="white-space: nowrap;">
         <thead>
           <tr>
             <th v-if="eta" class="is-clickable has-text-centered" @click="eta = !eta">ETA</th>
@@ -222,88 +236,43 @@ function sailClass(sail: Sail) {
             <th class="has-text-centered">Date</th>
             <th class="has-text-centered"><i class='fa fa-compass'></i></th>
             <th class="has-text-centered"><i class='fa fa-location-arrow'></i></th>
-            <th></th>
-            <th></th>
-            <th>Boost</th>
+            <th class="has-text-centered">V</th>
+            <th class="has-text-centered">F</th>
+            <th class="has-text-centered">B</th>
             <th class="has-text-centered" colspan="2"><i class='fa fa-wind'></i></th>
             <th class="has-text-centered"><i class='fa fa-ship'></i></th>
+            <th class="has-text-centered"><i class='far fa-face-smile'></i></th>
             <th class="has-text-centered"><i class='fa fa-clock'></i></th>
             <th class="has-text-centered">Latitude</th>
             <th class="has-text-centered">Longitude</th>
           </tr>
         </thead>
 
-        <!-- v-bind:class="{'has-background-primary-light': l.current, 'has-background-grey-lighter': l.outdated && !l.current}" -->
         <tr
-            v-for="wp in routeStore.route.way"
+            v-for="wp in table == 'route' ? route : progs"
             :key="wp.duration"
-            @mouseover="highlight(wp)"
-            @mouseleave="unhighlight(wp)">
-          <td v-if="eta" class="has-text-right">{{ "wp.eta" }}</td>
-          <td v-else class="has-text-right">{{ wp.duration }}</td>
-          <td class="has-text-right">{{ routeStore.route.infos.start + wp.duration }}</td>
-          <td class="has-text-right">{{ utils.heading(wp.boat_settings.heading, wp.status.wind.direction).toFixed(1) }}°</td>
-          <td class="has-text-right {'has-text-danger': l.twa < 0, 'has-text-success': l.twa > 0}">{{ utils.twa(wp.boat_settings.heading, wp.status.wind.direction).toFixed(1) }}°</td>
-          <td :class="sailClass(wp.boat_settings.sail)">{{ utils.sail_name(wp.boat_settings.sail) }}</td>
-          <td><span v-if="wp.status.foil > 0" class='foil' v-bind:style="{opacity: wp.status.foil + '%'}"><i class='fa fa-fighter-jet'></i></span></td>
-          <td><span v-if="wp.status.boost > 0">{{ wp.status.boost }}%</span></td>
-          <td class="has-text-right">{{ wp.status.wind.direction.toFixed(1) }}°</td>
-          <td class="has-text-right">{{ wp.status.wind.speed.toFixed(1) }} kt</td>
-          <td class="has-text-right">{{ wp.status.boat_speed.toFixed(1) }} kt</td>
-          <td>{{ wp.status.penalties }}</td>
-          <td>{{ wp.from.lat }}</td>
-          <td>{{ wp.from.lon }}</td>
+            v-bind:class="{'has-background-primary-light': wp.current, 'has-background-grey-lighter': wp.outdated}"
+            @mouseover="highlight(wp.date)"
+            @mouseleave="unhighlight(wp.date)">
+          <td v-if="eta" class="has-text-right">{{ formatDuration(wp.eta) }}</td>
+          <td v-else class="has-text-right">{{ formatDuration(wp.duration) }}</td>
+          <td class="has-text-right">{{ formatDate(wp.date) }}</td>
+          <td class="has-text-right">{{ wp.heading.toFixed(1) }}°</td>
+          <td class="has-text-right" :class="{'has-text-danger': wp.twa < 0, 'has-text-success': wp.twa > 0}">{{ wp.twa.toFixed(1) }}°</td>
+          <td :class="sailClass(wp.wp.boat_settings.sail)">{{ utils.sail_name(wp.wp.boat_settings.sail) }}</td>
+          <td><span v-if="wp.wp.status.foil > 0" class='foil has-tooltip-right' v-bind:style="{opacity: wp.wp.status.foil + '%'}" :data-tooltip="wp.wp.status.foil + '%'"><i class='fa fa-fighter-jet'></i></span></td>
+          <td><span v-if="wp.wp.status.boost > 0" class='foil has-tooltip-right' v-bind:style="{opacity: wp.wp.status.boost + '%'}" :data-tooltip="wp.wp.status.boost + '%'"><i class='fa fa-rocket'></i></span></td>
+          <td class="has-text-right">{{ wp.wp.status.wind.direction.toFixed(1) }}°</td>
+          <td class="has-text-right">{{ wp.wp.status.wind.speed.toFixed(1) }} kt</td>
+          <td class="has-text-right">{{ wp.wp.status.boat_speed.toFixed(1) }} kt</td>
+          <td class="has-text-right">{{ wp.wp.status.stamina.toFixed(0) }}</td>
+          <td>{{ formatPenalties(wp.wp.status.penalties) }}</td>
+          <td>{{ utils.lat2string(utils.dd2dms(wp.wp.from.lat)) }}</td>
+          <td>{{ utils.lon2string(utils.dd2dms(wp.wp.from.lon)) }}</td>
         </tr>
       </table>
 
-      <!-- <table v-show="table == 'progs'" class="table is-fullwidth is-narrow is-bordered monospace" style="white-space: nowrap;">
-        <thead>
-          <tr>
-            <th v-if="eta" class="is-clickable has-text-centered" @click="eta = !eta">ETA</th>
-            <th v-else class="is-clickable has-text-centered" @click="eta = !eta">Duration</th>
-            <th class="has-text-centered">Date</th>
-            <th class="has-text-centered"><i class='fa fa-compass'></i></th>
-            <th class="has-text-centered"><i class='fa fa-location-arrow'></i></th>
-            <th></th>
-            <th></th>
-            <th>Boost</th>
-            <th class="has-text-centered" colspan="2"><i class='fa fa-wind'></i></th>
-            <th class="has-text-centered"><i class='fa fa-ship'></i></th>
-            <th class="has-text-centered">Latitude</th>
-            <th class="has-text-centered">Longitude</th>
-          </tr>
-        </thead>
-        <tr v-for="(l) in snakeStore.progs" :key="l.start_date.toISOString()" v-bind:class="{'has-background-primary-light': l.current, 'has-background-grey-lighter': l.outdated && !l.current}">
-          <td v-if="eta" class="has-text-right">{{ l.eta }}</td>
-          <td v-else class="has-text-right">{{ l.duration }}</td>
-          <td class="has-text-right">{{ l.date }}</td>
-          <td class="has-text-right" :class="{'has-background-warning-light': !l.outdated && !l.isTwa}">{{ parseFloat(l.bearing).toFixed(1) }}°</td>
-          <td class="has-text-right" :class="{'has-background-warning-light': !l.outdated && l.isTwa, 'has-text-danger': l.twa < 0, 'has-text-success': l.twa > 0}">{{ parseFloat(l.twa).toFixed(1) }}°</td>
-          <td :class="sailClass(wp.sail)">{{ l.sail }}</td>
-          <td><span v-if="l.foil > 0" class='foil' v-bind:style="{opacity: l.foil + '%'}"><i class='fa fa-fighter-jet'></i></span></td>
-          <td><span v-if="l.boost > 0">{{ l.boost }}%</span></td>
-          <td class="has-text-right">{{ parseFloat(l.wind).toFixed(1) }}°</td>
-          <td class="has-text-right">{{ parseFloat(l.windSpeed).toFixed(1) }} kt</td>
-          <td class="has-text-right">{{ parseFloat(l.boatSpeed).toFixed(1) }} kt</td>
-          <td>{{ l.lat }}</td>
-          <td>{{ l.lon }}</td>
-        </tr>
-      </table> -->
-
-      <!-- <download-csv v-show="table == 'route'" :data="lines" name="phtheirichthys-route.csv" delimiter=";"
-          :fields="['date', 'dlat', 'dlon', 'bearing', 'twa', 'wind', 'windSpeed', 'boatSpeed', 'sail']"
-          :labels="{date: 'Date', dlat: 'Latitude', dlon: 'Longitude', bearing: 'HDG', twa: 'TWA', wind: 'TWD', windSpeed: 'TWS', boatSpeed: 'Speed', sail: 'Sail'}"
-          >
-        <button class="button">
-          <span class="icon">
-            <i class="fas fa-file-download"></i>
-          </span>
-          <span>csv</span>
-        </button>
-        <img src="download_icon.png">
-      </download-csv>
-
-      <download-csv v-show="table == 'progs'" :data="progsLine" name="phtheirichthys-progs.csv" delimiter=";"
+      <!-- <download-csv v-if="table == 'route' && routeStore.route || table == 'progs' && snakeStore.progs" :data="table == 'route' ? route : progs" name="phtheirichthys-route.csv" delimiter=";"
           :fields="['date', 'dlat', 'dlon', 'bearing', 'twa', 'wind', 'windSpeed', 'boatSpeed', 'sail']"
           :labels="{date: 'Date', dlat: 'Latitude', dlon: 'Longitude', bearing: 'HDG', twa: 'TWA', wind: 'TWD', windSpeed: 'TWS', boatSpeed: 'Speed', sail: 'Sail'}"
           >

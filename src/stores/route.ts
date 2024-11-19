@@ -1,11 +1,19 @@
 import { defineStore } from "pinia"
 import { Ref, ref, toRaw } from "vue"
+import mitt from 'mitt'
 import { Data } from "../lib/data"
 import { RouteResult } from "@phtheirichthys/phtheirichthys"
 import { useRacesStore } from './races'
 import { useNavigateStore } from './navigate'
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { useWindStore } from "./wind"
+
+export const emitter = mitt<Events>()
+
+type Events = {
+  'highlight': Date,
+  'unhighlight': Date
+}
 
 export const useRouteStore = defineStore('route', () => {
 
@@ -19,7 +27,11 @@ export const useRouteStore = defineStore('route', () => {
 
   async function load() {
     console.log("load route")
-    route.value = Data.ROUTE.getItem(navigateStore.context!)
+    route.value = Data.ROUTE.getItem(navigateStore.context!, (val) => {
+      if (val) {
+        val.infos.start = new Date(val.infos.start)
+      }
+    })
   }
 
   async function navigate(raceId:string) {

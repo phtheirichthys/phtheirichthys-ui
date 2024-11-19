@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import L from 'leaflet'
 
-import { onMounted } from 'vue';
-import { useRouteStore } from '../../stores/route'
+import { onMounted, ref } from 'vue';
+import { useRouteStore, emitter as routeEmitter } from '../../stores/route'
 import Isochrones from './Isochrones.vue'
 import * as utils from '../../lib/utils'
 
@@ -53,6 +53,7 @@ function refresh() {
     draw()
 }
 
+const markers = ref<Map<number, [L.Marker, L.DivIcon, L.DivIcon]> | null>(null)
 function draw() {
   if (!routeStore.route) {
     return
@@ -77,11 +78,11 @@ function draw() {
   //                 iconSize: new L.Point(roundSize, roundSize),
   //                 className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon night-changed'
   // })
-  // const _editIconHighlighted = new L.DivIcon({
-  //                 iconSize: new L.Point(squareSize, squareSize),
-  //                 shadowSize: new L.Point(squareSize + 4, squareSize + 4),
-  //                 className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon'
-  // })
+  const _editIconHighlighted = new L.DivIcon({
+                  iconSize: new L.Point(squareSize, squareSize),
+                  shadowSize: new L.Point(squareSize + 4, squareSize + 4),
+                  className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon'
+  })
   // const _changedIconHighlighted = new L.DivIcon({
   //                 iconSize: new L.Point(roundSize, roundSize),
   //                 className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon changed'
@@ -103,10 +104,15 @@ function draw() {
   //                 className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon dark'
   // })
 
+  markers.value = new Map<number, [L.Marker, L.DivIcon, L.DivIcon]>()
   routeStore.route.way.forEach((waypoint) => {
-    L.marker([waypoint.from.lat, waypoint.from.lon], {icon: _editIcon, zIndexOffset: 25})
+    let marker = L.marker([waypoint.from.lat, waypoint.from.lon], {icon: _editIcon, zIndexOffset: 25})
           .bindTooltip(() => utils.getTooltipTitle(new Date(routeStore.route!.infos.start), waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
           .addTo(layer)
+
+    let date = new Date(routeStore.route!.infos.start)
+    date.setSeconds(date.getSeconds() + waypoint.duration)
+    markers.value!.set(date.getTime(), [marker, _editIcon, _editIconHighlighted])
   })
 
   var polylineOptions = {
@@ -121,6 +127,26 @@ function draw() {
    
 onMounted(() => {
   refresh()
+})
+
+routeEmitter.on('highlight', date => {
+  if (!markers.value) return
+  let marker = markers.value.get(date.getTime())
+  if (marker) {
+    let [m, _, highlightenIcon] = marker
+    m.openTooltip()
+    m.setIcon(highlightenIcon as L.DivIcon)
+  }
+})
+
+routeEmitter.on('unhighlight', date => {
+  if (!markers.value) return
+  let marker = markers.value.get(date.getTime())
+  if (marker) {
+    let [m, normalIcon, _] = marker
+    m.closeTooltip()
+    m.setIcon(normalIcon as L.DivIcon)
+  }
 })
 </script>
 
