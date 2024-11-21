@@ -78,7 +78,7 @@ onMounted(() => {
 })
 
 const refTimes = computed(() => {
-  const forecasts = [0, 1, 2, 3, 4, 5, 6, 9, 12, 24, 36, 48, 72, 96, 120, 144, 168]
+  const forecasts = [0, 1, 2, 3, 4, 5, 6, 9, 12, 24, 36, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
   let f = 0
   let f_date = new Date(now.value)
   f_date.setHours(f_date.getHours() + forecasts[f])
