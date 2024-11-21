@@ -7,7 +7,7 @@ import Dms from './Dms.vue'
 const navigateStore = useNavigateStore()
 
 const options = ref(toRaw(navigateStore.options))
-const delay = ref(toRaw(navigateStore.delay))
+const delay = ref(0)
 const position = ref(toRaw(navigateStore.position))
 const settings = ref(toRaw(navigateStore.settings))
 const twa = ref('twa' in settings.value.heading)
