@@ -7,6 +7,7 @@ import Dms from './Dms.vue'
 const navigateStore = useNavigateStore()
 
 const options = ref(toRaw(navigateStore.options))
+const delay = ref(toRaw(navigateStore.delay))
 const position = ref(toRaw(navigateStore.position))
 const settings = ref(toRaw(navigateStore.settings))
 const twa = ref('twa' in settings.value.heading)
@@ -57,7 +58,7 @@ function save() {
     settings.value.heading = {heading: heading.value}
   }
 
-  navigateStore.setPosition(toRaw(position.value))
+  navigateStore.setPosition(toRaw(position.value), toRaw(delay.value))
   navigateStore.setSettings(toRaw(settings.value))
   navigateStore.setOptions(toRaw(options.value))
 }
@@ -200,19 +201,11 @@ function setTwa(t: boolean) {
       </a>
     </p>
     <p class="control has-icons-left">
-      <!-- <input v-model.number="current.delay" class="input is-small" type="text" placeholder="0" style="width:130px"> -->
+      <input v-model.number="delay" class="input is-small" type="text" placeholder="0" style="width:130px">
       <span class="icon is-left">
         <i class="fas fa-clock"></i>
       </span>
     </p>
-    <div class="control">
-      <div class="field">
-        <label class="checkbox">
-          <!-- <input v-model="current.stop" type="checkbox"> -->
-            Stop
-        </label>
-      </div>
-    </div>
   </div>
   </section>
 </template>

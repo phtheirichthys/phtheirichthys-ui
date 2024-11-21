@@ -2,6 +2,13 @@ import { defineStore } from "pinia"
 import { ref, toRaw } from "vue"
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { Coords, Wind } from "@phtheirichthys/phtheirichthys"
+import mitt from "mitt"
+
+export const emitter = mitt<Events>()
+
+type Events = {
+  'select': Date,
+}
 
 export const useWindStore = defineStore('wind', () => {
 

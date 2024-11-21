@@ -2,7 +2,7 @@
 import L from 'leaflet'
 import { computed, onBeforeMount, onMounted, ref } from 'vue';
 
-import { useWindStore } from '../stores/wind';
+import { useWindStore, emitter as windEmitter } from '../stores/wind';
 
 const props = defineProps<{
     map: L.Map,
@@ -10,6 +10,8 @@ const props = defineProps<{
 }>()
 
 const windStore = useWindStore()
+
+windEmitter.on("select", (date) => select(date))
 
 const now = ref(new Date())
 now.value.setSeconds(0)
@@ -172,6 +174,16 @@ div.leaflet-top.leaflet-right {
     height: 100%;
     display: flex;
     flex-flow: column;
+}
+
+div.leaflet-control-layers.leaflet-control.forecast-times.expanded {
+  overflow-y: scroll;
+}
+
+div.leaflet-control-layers.leaflet-control.forecast-times {
+    margin-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+    z-index: 25;
 }
 
 .ref {
