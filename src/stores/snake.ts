@@ -147,6 +147,7 @@ export const useSnakeStore = defineStore('snake', () => {
         best_ratio: navigateStore.status.best_ratio,
         ice: false,
         change: false,
+        vmgs: null,
         penalties: [],
         remaining_penalties: [],
         stamina: navigateStore.status.stamina,
