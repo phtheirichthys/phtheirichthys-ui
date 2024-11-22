@@ -41,7 +41,7 @@ onBeforeMount(() => {
 
 let WindLayer = L.GridLayer.extend({
   options: {
-      opacity: 0.6,
+      opacity: 0.9,
       zIndex: 10
   },
   initialize: function(options: any) {

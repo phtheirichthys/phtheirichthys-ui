@@ -9,6 +9,7 @@ import Race from './Race.vue'
 import Land from '../Land.vue'
 import Wind from '../Wind.vue'
 import Route from './Route.vue'
+import PreviousRoutes from './PreviousRoutes.vue'
 import NavigationConfig from './NavigationConfig.vue'
 import Polar from './Polar.vue'
 import Table from './Table.vue'
@@ -209,6 +210,7 @@ function opacity(v: number) {
   <Snake v-if="ready && polarId" :polarId="polarId" :map="map" :layer-control="layerControl" />
   <Land v-if="ready" :layer="landLayerControl" />
   <Wind v-if="ready" :map="map" :layer-control="layerControl" />
+  <PreviousRoutes :map="map" :layer-control="layerControl" />
   <Route :map="map" :layer-control="layerControl" />
 
   <div id="sidebar" class="leaflet-sidebar collapsed">
@@ -248,6 +250,7 @@ function opacity(v: number) {
     </div>  
   </div>
   <Teleport to="#legend">
+  <div>
     <div>
       <span><strong><i class='fa fa-compass'></i></strong> {{ utils.heading(navigateStore.settings.heading, navigateStore.status.wind.direction) }}</span>
       <span style="padding-left:7px;"><strong><i class='fa fa-location-arrow'></i></strong> {{ utils.twa(navigateStore.settings.heading, navigateStore.status.wind.direction).toFixed(1) }}°</span>
@@ -282,6 +285,7 @@ function opacity(v: number) {
       <div v-if="cursor">{{ utils.lat2string(utils.dd2dms(cursor.lat)) + " - " + utils.lon2string(utils.dd2dms(cursor.lon)) }}</div>
       <div v-if="wind"><strong><i class='fa fa-wind'></i></strong> {{ wind.direction.toFixed(1) + "° " + wind.speed.toFixed(1) }}kt</div>
     </div>
+  </div>
   </Teleport>
 </template>
 
@@ -376,6 +380,17 @@ function opacity(v: number) {
 }
 
 
+.sail {
+  font-weight: bold;
+}
+
+.foil {
+  float: right;
+}
+
+</style>
+
+<style>
 .leaflet-control-velocity {
   background-color:hsla(0,0%,100%,.7);
   padding:0 5px;
@@ -403,14 +418,6 @@ function opacity(v: number) {
 }
 .leaflet-bottom .leaflet-control-velocity {
   margin-bottom: 10px !important;
-}
-
-.sail {
-  font-weight: bold;
-}
-
-.foil {
-  float: right;
 }
 
 </style>

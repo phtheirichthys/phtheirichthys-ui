@@ -1,8 +1,8 @@
 import { defineStore } from "pinia"
-import { Ref, ref, toRaw } from "vue"
+import { ref, toRaw } from "vue"
 import mitt from 'mitt'
 import { Data } from "../lib/data"
-import { RouteResult } from "@phtheirichthys/phtheirichthys"
+import { RouteInfos, RouteResult, RouteWaypoint } from "@phtheirichthys/phtheirichthys"
 import { useRacesStore } from './races'
 import { useNavigateStore } from './navigate'
 import * as phtheirichthys from '../lib/phtheirichthys'
@@ -15,6 +15,13 @@ type Events = {
   'unhighlight': Date
 }
 
+interface PreviousRoute {
+  infos: RouteInfos
+  way: RouteWaypoint[]
+  color: string
+  lock: boolean
+}
+
 export const useRouteStore = defineStore('route', () => {
 
   console.log("Load Route Store")
@@ -23,7 +30,8 @@ export const useRouteStore = defineStore('route', () => {
   const racesStore = useRacesStore()
   const windStore = useWindStore()
 
-  const route: Ref<RouteResult | null> = ref(null)
+  const route = ref<RouteResult | null>(null)
+  const previousRoutes = ref<Array<PreviousRoute>>([])
 
   async function load() {
     console.log("load route")
@@ -32,6 +40,14 @@ export const useRouteStore = defineStore('route', () => {
         val.infos.start = new Date(val.infos.start)
       }
     })
+
+    previousRoutes.value = Data.PREVIOUS_ROUTES.getItem(navigateStore.context!, (val) => {
+      if (val) {
+        for (let route of val) {
+          route.infos.start = new Date(route.infos.start)
+        }
+      }
+    }) || []
   }
 
   async function navigate(raceId:string) {
@@ -39,7 +55,13 @@ export const useRouteStore = defineStore('route', () => {
     await windStore.isReady
     await phtheirichthys.navigate(toRaw(race), toRaw(windStore.provider), toRaw(navigateStore.options),
       toRaw(navigateStore.position), toRaw(navigateStore.position.start_time), toRaw(navigateStore.settings),
-      toRaw(navigateStore.status),).then((res) => {
+      toRaw(navigateStore.status),)
+    .then((res) => {
+      if (route.value) {
+        previousRoutes.value = previousRoutes.value.filter((r) => r.lock)
+        previousRoutes.value.push({infos: route.value.infos, way: route.value.way, color: "#777777", lock: false})
+        Data.PREVIOUS_ROUTES.setItem(toRaw(previousRoutes.value), navigateStore.context!)
+      }
       route.value = res
       Data.ROUTE.setItem(res, navigateStore.context!)
     }).catch((e) => {
@@ -49,6 +71,7 @@ export const useRouteStore = defineStore('route', () => {
 
   return {
     route,
+    previousRoutes,
     navigate,
     load,
   }
