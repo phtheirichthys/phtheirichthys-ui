@@ -74,6 +74,72 @@ function setTwa(t: boolean) {
   }
 }
 
+const pasteLatlon = ref("")
+
+function paste(event: ClipboardEvent) {
+  var clipboard = event.clipboardData?.getData("text/plain") || ""
+  pasteData(clipboard)
+  event.preventDefault()
+}
+
+function pasteData(clipboard: string) {
+  let wrap = utils.dd2dms(position.value.lon).wrap
+
+  let _pasteStatus: {latitude: -1|0|1, longitude: -1|0|1, heading: -1|0|1} = {
+    latitude: -1,
+    longitude: -1,
+    heading: -1,
+  }
+
+  let latRe = /([0-1]?[0-9]{2}) ?°(N|S) ([0-9]{2}) ?(?:'|‘) ?([0-9]{2})"/
+  const lat = clipboard.match(latRe);
+  if(lat) {
+    position.value.lat = utils.dms2dd({p: lat[2] === "N" ? 1 : -1, d: parseFloat(lat[1]), m: parseFloat(lat[3]), s: parseFloat(lat[4]), wrap: 0})
+    _pasteStatus.latitude = 1
+  }
+
+  let lonRe = /([0-1]?[0-9]{2}) ?°(E|W) ([0-9]{2}) ?(?:'|‘) ?([0-9]{2})"/
+  const lon = clipboard.match(lonRe);
+  if(lon) {
+    position.value.lon = utils.dms2dd({p: lon[2] === "E" ? 1 : -1, d: parseFloat(lon[1]), m: parseFloat(lon[3]), s: parseFloat(lon[4]), wrap})
+    _pasteStatus.longitude = 1
+  }
+
+  let headingRe = /Hdg:([0-3]?[0-9]{2})/
+  const heading = clipboard.match(headingRe);
+  if(heading) {
+    settings.value.heading = {heading: parseFloat(heading[1])}
+    _pasteStatus.heading = 1
+  }
+
+
+  let latReDash = /([0-1]?[0-9]?[0-9])°([0-9]{2})'([0-9]{2}(\.[0-9]{2})?)"(N|S)/
+  const latDash = clipboard.match(latReDash);
+  if(latDash) {
+    position.value.lat = utils.dms2dd({p: latDash[5] === "N" ? 1 : -1, d: parseFloat(latDash[1]), m: parseFloat(latDash[2]), s: parseFloat(latDash[3]), wrap: 0})
+    _pasteStatus.latitude = 1
+  }
+
+  let lonReDash = /([0-1]?[0-9]?[0-9])°([0-9]{2})'([0-9]{2}(\.[0-9]{2})?)"(E|W)/
+  const lonDash = clipboard.match(lonReDash);
+  if(lonDash) {
+    position.value.lon = utils.dms2dd({p: lonDash[5] === "E" ? 1 : -1, d: parseFloat(lonDash[1]), m: parseFloat(lonDash[2]), s: parseFloat(lonDash[3]), wrap})
+    _pasteStatus.longitude = 1
+  }
+
+  pasteStatus.value = _pasteStatus
+
+  setTimeout(() => {
+    pasteStatus.value = {
+      latitude: 0,
+      longitude: 0,
+      heading: 0
+    }
+  }, 30000)
+
+  return _pasteStatus.latitude == 1 && _pasteStatus.longitude == 1
+}
+
 </script>
 
 <template>
@@ -121,10 +187,10 @@ function setTwa(t: boolean) {
         </div>
       </div>
     </div>
-    <label class="label">Copier - coller</label>
+    <label class="label">Copier - Coller</label>
     <div class="field is-grouped">
       <p class="control">
-        <!--<input v-model="pasteLatlon" @paste="paste" class="input is-small" type="text">-->
+        <input v-model="pasteLatlon" @paste="paste" class="input is-small" type="text">
       </p>
     </div>
     <label class="label">Latitude</label>
