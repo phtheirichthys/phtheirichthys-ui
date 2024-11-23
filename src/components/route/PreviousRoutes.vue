@@ -48,11 +48,11 @@ function draw() {
   markers.value = new Array<[Date, L.Marker, L.DivIcon, L.DivIcon]>()
   routeStore.previousRoutes.forEach((route) => {
     route.way.forEach((waypoint) => {
-      let date = new Date(routeStore.route!.infos.start)
+      let date = new Date(route.infos.start)
       date.setSeconds(date.getSeconds() + waypoint.duration)
 
       let marker = L.marker([waypoint.from.lat, waypoint.from.lon], {icon: _darkIcon, zIndexOffset: 25})
-            .bindTooltip(() => utils.getTooltipTitle(new Date(routeStore.route!.infos.start), waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
+            .bindTooltip(() => utils.getTooltipTitle(new Date(route.infos.start), waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
             .on("click", () => {
               windEmitter.emit("select", date)
             })
