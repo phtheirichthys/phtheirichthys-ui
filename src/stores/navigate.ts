@@ -26,7 +26,7 @@ export const useNavigateStore = defineStore('navigate', () => {
 
   const title = ref("")
 
-  const options = ref({
+  const options = ref<BoatOptions>({
     lt: false,
     gt: false,
     code0: false,
@@ -34,16 +34,21 @@ export const useNavigateStore = defineStore('navigate', () => {
     hull: false,
     winch: false,
     stamina: false,
+    magic_furler: false,
+    pouf: false,
+    veste: false
   });
   
   const position = ref({lat: 0, lon: 0, start_time: new Date()})
 
   const settings: Ref<{
     heading: {heading: number} | {twa: number},
-    sail: { index: number, id: number, auto: boolean }
+    sail: { index: number, id: number, auto: boolean },
+    stamina: number
   }> = ref({
     heading: { heading: 0 },
-    sail: { index: 0, id: 1, auto: false }
+    sail: { index: 0, id: 1, auto: false },
+    stamina:100
   })
 
   const status: Ref<BoatStatus> = ref({
@@ -91,6 +96,9 @@ export const useNavigateStore = defineStore('navigate', () => {
       hull: false,
       winch: false,
       stamina: false,
+      magic_furler: false,
+      pouf: false,
+      veste: false
     }
 
     position.value = Data.POSITION.getItem(context.value, (val) => { if (val) { val.start_time = new Date(val.start_time) } }) || (race ? {lat: race.start.lat, lon: race.start.lon, start_time: race.start_time || new Date()} : {lat: 0, lon: 0, start_time: new Date()})
@@ -98,7 +106,8 @@ export const useNavigateStore = defineStore('navigate', () => {
 
     settings.value = Data.SETTINGS.getItem(context.value) || {
       heading: { heading: 0 },
-      sail: { index: 0, id: 1, auto: false }
+      sail: { index: 0, id: 1, auto: false },
+      stamina: 100
     }
 
     panZoom.value = Data.PAN_ZOOM.getItem(context.value)

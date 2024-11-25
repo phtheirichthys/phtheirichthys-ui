@@ -44,7 +44,8 @@ export class BoatConfig {
     this.position = new Point(0, 0)
     this.settings = {
       heading: { heading: 0 },
-      sail: {index: 0, id: 1, auto: false}
+      sail: {index: 0, id: 1, auto: false},
+      stamina: 100
     }
     this.options = {
       lt: false,

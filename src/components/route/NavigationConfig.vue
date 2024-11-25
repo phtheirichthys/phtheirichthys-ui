@@ -157,7 +157,7 @@ function pasteData(clipboard: string) {
             <button v-else class="button is-small" @click="setTwa(true)"><span class="icon is-small"><i class="far fa-compass"></i></span></button>
           </p>
           <p class="control">
-            <input v-model.number="heading" class="input is-small" :class="{'is-success': pasteStatus.heading === 1, 'is-danger': pasteStatus.heading === -1}" type="text" placeholder="41" style="width:60px">
+            <input v-model.number="heading" class="input is-small" :class="{'is-success': pasteStatus.heading === 1, 'is-danger': pasteStatus.heading === -1}" type="text" placeholder="41" style="width:45px">
           </p>
           <p class="control">
             <a class="button is-static is-small">°</a>
@@ -168,7 +168,7 @@ function pasteData(clipboard: string) {
         <label class="label">Sail</label>
         <div class="control">
           <div class="select is-small">
-            <select v-model.number="settings.sail.id">
+            <select v-model.number="settings.sail.id" style="width:100px">
               <option value="1">Jib</option>
               <option value="2">>Spi</option>
               <option value="4">Génois Léger</option>
@@ -184,6 +184,12 @@ function pasteData(clipboard: string) {
         <label class="label">Auto</label>
         <div class="control">
           <input v-model="settings.sail.auto" type="checkbox">
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Stamina</label>
+        <div class="control">
+          <input v-model.number="settings.stamina" class="input is-small" type="text" placeholder="110" style="width:45px">
         </div>
       </div>
     </div>
@@ -255,6 +261,36 @@ function pasteData(clipboard: string) {
             <label class="checkbox">
               <input v-model="options.gt" type="checkbox">
               Gros temps
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third">
+        <div class="control">
+          <div class="field">
+            <label class="checkbox">
+              <input v-model="options.magic_furler" type="checkbox">
+              Magic Furler
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third">
+        <div class="control">
+          <div class="field">
+            <label class="checkbox">
+              <input v-model="options.pouf" type="checkbox">
+              Pouf
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third">
+        <div class="control">
+          <div class="field">
+            <label class="checkbox">
+              <input v-model="options.veste" type="checkbox">
+              Veste
             </label>
           </div>
         </div>
