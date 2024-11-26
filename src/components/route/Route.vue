@@ -123,7 +123,6 @@ function draw() {
   var polylineOptions = {
         color: 'green',
         weight: 2,
-        smoothFactor: 2,
         // lineJoin: "round",
       }
   L.polyline(routeStore.route.way.map((wp) => [wp.from.lat, wp.from.lon]), polylineOptions).addTo(layer)

@@ -15,7 +15,8 @@ type Events = {
   'unhighlight': Date
 }
 
-interface PreviousRoute {
+export interface PreviousRoute {
+  name?: string
   infos: RouteInfos
   way: RouteWaypoint[]
   color: string
@@ -69,10 +70,15 @@ export const useRouteStore = defineStore('route', () => {
     })
   }
 
+  async function save() {
+    Data.PREVIOUS_ROUTES.setItem(toRaw(previousRoutes.value), navigateStore.context!)
+  }
+
   return {
     route,
     previousRoutes,
     navigate,
     load,
+    save,
   }
 })

@@ -2,7 +2,7 @@
 import L from 'leaflet'
 
 import { onMounted, ref } from 'vue';
-import { useRouteStore, emitter as routeEmitter } from '../../stores/route'
+import { useRouteStore, emitter as routeEmitter, PreviousRoute } from '../../stores/route'
 import * as utils from '../../lib/utils'
 import { emitter as windEmitter } from '../../stores/wind'
 
@@ -62,9 +62,7 @@ function draw() {
     })
     var polylineOptions = {
         color: route.color,
-        weight: 2,
-        smoothFactor: 2,
-        // lineJoin: "round",
+        weight: 1,
       }
     L.polyline(route.way.map((wp) => [wp.from.lat, wp.from.lon]), polylineOptions).addTo(layer)
   })
@@ -74,6 +72,28 @@ function draw() {
 onMounted(() => {
   refresh()
 })
+
+function formatDate(date: Date): string {
+  return date.getFullYear() + "-"
+  + (date.getMonth() + 1).toString().padStart(2, "0") + "-"
+  + date.getDate().toString().padStart(2, "0") + " "
+  + date.getHours().toString().padStart(2, "0") + ":"
+  + date.getMinutes().toString().padStart(2, "0")
+}
+
+function switchLock(route: PreviousRoute) {
+  route.lock = !route.lock
+  save()
+}
+
+function save() {
+  routeStore.save().then(() => refresh())
+}
+
+function remove(index: number) {
+  routeStore.previousRoutes.splice(index, 1)
+  save()
+}
 
 routeEmitter.on('highlight', date => {
   if (!markers.value) return
@@ -99,6 +119,45 @@ routeEmitter.on('unhighlight', date => {
 </script>
 
 <template>
+  <div v-for="(route, index) of routeStore.previousRoutes" :key="route.infos.start" class="card mb-3">
+    <div class="card-content p-2">
+      <div class="media mb-1">
+        <div class="media-content">
+          <input v-if="true" v-model="route.name" class="title input is-small" type="text" @change="save">
+          <div class="columns is-gapless is-vcentered is-mobile">
+            <div class="column">
+              {{ formatDate(route.infos.start) }}
+            </div>
+            <div class="column">
+              <div class="field has-addons">
+                <p class="control">
+                  <button class="button is-small"><span class="icon is-small" :style="{'color':route.color}"><i class="fas fa-square-full"></i></span></button>
+                </p>
+                <p class="control">
+                  <input v-if="true" v-model="route.color" class="input is-small" type="text" @change="save">
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="media-right">
+          <button v-show="true" class="button is-small is-white" @click="switchLock(route)">
+            <span v-if="route.lock" class="icon is-small">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <span v-else class="icon is-small">
+              <i class="fa-solid fa-lock-open"></i>
+            </span>
+          </button>
+          <button v-show="true" class="button is-small is-white" @click="remove(index)">
+            <span class="icon is-small">
+              <i class="fas fa-trash"></i>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style>

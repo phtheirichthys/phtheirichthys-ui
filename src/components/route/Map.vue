@@ -210,7 +210,6 @@ function opacity(v: number) {
   <Snake v-if="ready && polarId" :polarId="polarId" :map="map" :layer-control="layerControl" />
   <Land v-if="ready" :layer="landLayerControl" />
   <Wind v-if="ready" :map="map" :layer-control="layerControl" />
-  <PreviousRoutes :map="map" :layer-control="layerControl" />
   <Route :map="map" :layer-control="layerControl" />
 
   <div id="sidebar" class="leaflet-sidebar collapsed">
@@ -227,6 +226,7 @@ function opacity(v: number) {
 
       <ul role="tablist"> <!-- bottom aligned tabs -->
         <li><a href="#table" role="tab"><i class="fa fa-table"></i></a></li>
+        <li class="bottom"><a href="#previous" role="tab"><i class="fas fa-list-check"></i></a></li>
         <li class="bottom"><a href="#polars" role="tab"><i class="fas fa-chart-area"></i></a></li>
         <li class="bottom"><a href="#race" role="tab"><i class="fas fa-map-marked"></i></a></li>
         <li class="bottom"><RouterLink to="/"><i class="fas fa-home"></i></RouterLink></li>
@@ -240,6 +240,9 @@ function opacity(v: number) {
       </div>
       <div class="leaflet-sidebar-pane" id="table">
         <Table :display="sidebar == 'table'" />
+      </div>
+      <div class="leaflet-sidebar-pane" id="previous">
+        <PreviousRoutes :map="map" :layer-control="layerControl" />
       </div>
       <div class="leaflet-sidebar-pane" id="polars">
         <Polar v-if="polarId" :polarId="polarId" :parentWidth="sidebarContentWidth" :parentHeight="sidebarContentHeight" />
