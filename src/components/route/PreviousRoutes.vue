@@ -46,7 +46,7 @@ function draw() {
   })
 
   markers.value = new Array<[Date, L.Marker, L.DivIcon, L.DivIcon]>()
-  routeStore.previousRoutes.forEach((route) => {
+  routeStore.previousRoutes.filter((r) => !r.hidden).forEach((route) => {
     route.way.forEach((waypoint) => {
       let date = new Date(route.infos.start)
       date.setSeconds(date.getSeconds() + waypoint.duration)
@@ -83,6 +83,11 @@ function formatDate(date: Date): string {
 
 function switchLock(route: PreviousRoute) {
   route.lock = !route.lock
+  save()
+}
+
+function switchEye(route: PreviousRoute) {
+  route.hidden = !route.hidden
   save()
 }
 
@@ -124,23 +129,16 @@ routeEmitter.on('unhighlight', date => {
       <div class="media mb-1">
         <div class="media-content">
           <input v-if="true" v-model="route.name" class="title input is-small" type="text" @change="save">
-          <div class="columns is-gapless is-vcentered is-mobile">
-            <div class="column">
-              {{ formatDate(route.infos.start) }}
-            </div>
-            <div class="column">
-              <div class="field has-addons">
-                <p class="control">
-                  <button class="button is-small"><span class="icon is-small" :style="{'color':route.color}"><i class="fas fa-square-full"></i></span></button>
-                </p>
-                <p class="control">
-                  <input v-if="true" v-model="route.color" class="input is-small" type="text" @change="save">
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
         <div class="media-right">
+          <button v-show="true" class="button is-small is-white" @click="switchEye(route)">
+            <span v-if="!route.hidden" class="icon is-small">
+              <i class="fa-solid fa-eye"></i>
+            </span>
+            <span v-else class="icon is-small">
+              <i class="fa-solid fa-eye-slash"></i>
+            </span>
+          </button>
           <button v-show="true" class="button is-small is-white" @click="switchLock(route)">
             <span v-if="route.lock" class="icon is-small">
               <i class="fa-solid fa-lock"></i>
@@ -155,6 +153,23 @@ routeEmitter.on('unhighlight', date => {
             </span>
           </button>
         </div>
+      </div>
+      <div class="content">
+        <div class="columns is-gapless is-vcentered is-mobile">
+            <div class="column">
+              {{ formatDate(route.infos.start) }}
+            </div>
+            <div class="column">
+              <div class="field has-addons">
+                <p class="control" style="margin-bottom: 0px">
+                  <button class="button is-small"><span class="icon is-small" :style="{'color':route.color}"><i class="fas fa-square-full"></i></span></button>
+                </p>
+                <p class="control">
+                  <input v-if="true" v-model="route.color" class="input is-small" type="text" @change="save">
+                </p>
+              </div>
+            </div>
+          </div>
       </div>
     </div>
   </div>

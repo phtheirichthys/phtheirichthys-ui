@@ -21,6 +21,7 @@ export interface PreviousRoute {
   way: RouteWaypoint[]
   color: string
   lock: boolean
+  hidden?: boolean
 }
 
 export const useRouteStore = defineStore('route', () => {
