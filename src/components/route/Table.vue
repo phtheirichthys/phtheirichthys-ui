@@ -182,6 +182,20 @@ function formatPenalties(penalties: Penalty[]) {
   return res
 }
 
+function formatVmgs(wp: RouteWaypoint): string {
+
+  if (wp.boat_settings.sail.index == 1 || wp.boat_settings.sail.index == 5 || wp.boat_settings.sail.index == 6) {
+    console.log("VMG DOWN : ", wp.status.vmgs?.down.twa)
+    return wp.status.vmgs?.optimized_down?.twa.toString() + "-" +  wp.status.vmgs?.down.twa.toString()
+  }
+
+  if (wp.boat_settings.sail.index == 0 || wp.boat_settings.sail.index == 2 || wp.boat_settings.sail.index == 3) {
+    return wp.status.vmgs?.up.twa.toString() + "°"
+  }
+
+  return ""
+}
+
 </script>
 
 <template>
@@ -258,7 +272,7 @@ function formatPenalties(penalties: Penalty[]) {
           <td v-else class="has-text-right">{{ formatDuration(wp.duration) }}</td>
           <td class="has-text-right">{{ formatDate(wp.date) }}</td>
           <td class="has-text-right">{{ wp.heading.toFixed(1) }}°</td>
-          <td class="has-text-right" :class="{'has-text-danger': wp.twa < 0, 'has-text-success': wp.twa > 0}">{{ wp.twa.toFixed(1) }}°</td>
+          <td class="has-text-right has-tooltip-right" :class="{'has-text-danger': wp.twa < 0, 'has-text-success': wp.twa > 0}" :data-tooltip="formatVmgs(wp.wp)">{{ wp.twa.toFixed(1) }}°</td>
           <td :class="sailClass(wp.wp.boat_settings.sail)">{{ utils.sail_name(wp.wp.boat_settings.sail) }}</td>
           <td><span v-if="wp.wp.status.foil > 0" class='foil has-tooltip-right' v-bind:style="{opacity: wp.wp.status.foil + '%'}" :data-tooltip="wp.wp.status.foil + '%'"><i class='fa fa-fighter-jet'></i></span></td>
           <td><span v-if="wp.wp.status.boost > 0" class='foil has-tooltip-right' v-bind:style="{opacity: wp.wp.status.boost + '%'}" :data-tooltip="wp.wp.status.boost + '%'"><i class='fa fa-rocket'></i></span></td>

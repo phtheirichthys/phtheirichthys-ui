@@ -1,4 +1,5 @@
 import type { Coords, Heading, RouteWaypoint, Sail } from '@phtheirichthys/phtheirichthys'
+import mitt from 'mitt'
 
 export type SpeedUnit = "Knot" | "MeterPerSecond" | "KiloMeterPerHour"
 
@@ -203,4 +204,10 @@ export function sail_name(s: Sail): String {
     sail += "*"
   }
   return sail
+}
+
+export const emitter = mitt<Events>()
+
+export type Events = {
+  'select': RouteWaypoint,
 }

@@ -4,7 +4,7 @@ import L from 'leaflet'
 import { onMounted, ref } from 'vue';
 import { useRouteStore, emitter as routeEmitter, PreviousRoute } from '../../stores/route'
 import * as utils from '../../lib/utils'
-import { emitter as windEmitter } from '../../stores/wind'
+import { useWindStore } from '../../stores/wind'
 
 const props = defineProps<{
   map: L.Map | L.LayerGroup,
@@ -12,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const routeStore = useRouteStore()
+const windStore = useWindStore()
 
 const layer = L.layerGroup()
 layer.addTo(props.map)
@@ -54,7 +55,7 @@ function draw() {
       let marker = L.marker([waypoint.from.lat, waypoint.from.lon], {icon: _darkIcon, zIndexOffset: 25})
             .bindTooltip(() => utils.getTooltipTitle(new Date(route.infos.start), waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
             .on("click", () => {
-              windEmitter.emit("select", date)
+              windStore.now = date
             })
             .addTo(layer)
 

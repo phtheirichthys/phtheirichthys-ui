@@ -40,6 +40,7 @@ const windStore = useWindStore()
 
 const polarId = ref(racesStore.get(props.race)?.boat || null)
 
+
 watch(() => props.race, () => {
   polarId.value = racesStore.get(props.race)?.boat || null
   console.log("polar ID", polarId)
@@ -131,7 +132,7 @@ onMounted(() => {
 })
 
 function onMouseMove(point: Point) {
-  windStore.getWind(point).then((w) => {
+  windStore.getWind(point, windStore.now).then((w) => {
     wind.value = w
   })
   cursor.value = point
@@ -255,7 +256,7 @@ function opacity(v: number) {
   <Teleport to="#legend">
   <div>
     <div>
-      <span><strong><i class='fa fa-compass'></i></strong> {{ utils.heading(navigateStore.settings.heading, navigateStore.status.wind.direction) }}</span>
+      <span><strong><i class='fa fa-compass'></i></strong> {{ utils.heading(navigateStore.settings.heading, navigateStore.status.wind.direction).toFixed(1) }}</span>
       <span style="padding-left:7px;"><strong><i class='fa fa-location-arrow'></i></strong> {{ utils.twa(navigateStore.settings.heading, navigateStore.status.wind.direction).toFixed(1) }}°</span>
       <span class="sail" style="padding-left:7px;">{{ sail }}</span>
       <!-- <span v-if="navigateStore.status.ice" class='ice'><i class='fas fa-igloo'></i></span> -->

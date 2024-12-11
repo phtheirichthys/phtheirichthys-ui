@@ -183,7 +183,7 @@ function bearingTo(from: Coords, to: Coords) {
 function display(snake: Snake) {
   snakeLayer.clearLayers()
   
-  const tooltip = "<div><strong><i class='fa fa-compass'></i></strong> " + snakeHeading.toString() + "° <strong><i class='fa fa-location-arrow'></i></strong> " + (snake.twa[0].boat_settings.heading as {twa: number}).twa.toFixed(1).toString() + "°<div>"
+  const tooltip = "<div><strong><i class='fa fa-compass'></i></strong> " + snakeHeading.toFixed(1).toString() + "° <strong><i class='fa fa-location-arrow'></i></strong> " + (snake.twa[0].boat_settings.heading as {twa: number}).twa.toFixed(1).toString() + "°<div>"
   snakingTooltip.setContent(tooltip)
   displaySnake(snake.heading, false)
   displaySnake(snake.twa, true)

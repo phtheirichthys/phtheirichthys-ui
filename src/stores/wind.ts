@@ -2,13 +2,6 @@ import { defineStore } from "pinia"
 import { ref, toRaw } from "vue"
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { Coords, Wind } from "@phtheirichthys/phtheirichthys"
-import mitt from "mitt"
-
-export const emitter = mitt<Events>()
-
-type Events = {
-  'select': Date,
-}
 
 export const useWindStore = defineStore('wind', () => {
 
@@ -20,6 +13,7 @@ export const useWindStore = defineStore('wind', () => {
 
   const status = ref<any | null>(null)
 
+  const now = ref(new Date())
 
   let windResolve: () => void;
   let isReady = new Promise<void>((resolve) => {
@@ -59,6 +53,7 @@ export const useWindStore = defineStore('wind', () => {
   return {
     provider,
     status,
+    now,
     isReady,
     getWind,
     drawWind,

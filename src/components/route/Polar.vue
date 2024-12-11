@@ -3,7 +3,7 @@ import { computed, onMounted, Ref, ref, watch } from 'vue'
 import { useNavigateStore } from '../../stores/navigate'
 import { usePolarsStore } from '../../stores/polars'
 import * as d3 from 'd3'
-import { PolarSail } from '@phtheirichthys/phtheirichthys';
+import { PolarSail, RouteWaypoint } from '@phtheirichthys/phtheirichthys';
 import * as utils from '../../lib/utils'
 
 const polarsStore = usePolarsStore()
@@ -12,7 +12,7 @@ const navigateStore = useNavigateStore()
 const props = defineProps<{
   polarId: string,
   parentWidth: number,
-  parentHeight: number
+  parentHeight: number,
 }>()
 const polar = ref(polarsStore.get(props.polarId) || null)
 const width = ref(props.parentWidth - 10)
@@ -54,7 +54,7 @@ const boatSpeed = ref(new Array<number>())
 const upwind = ref(0)
 const downwind = ref(0)
 
-const paths = ref(new Array<{sail: PolarSail, points: Array<[number, number]>}>())
+const paths = ref(new Map<PolarSail, {sail: PolarSail, points: Array<[number, number]>, tolerences: {up: [number, number] | undefined, down: [number, number] | undefined}}>())
 
 function computeBoatSpeed() {
   if (!polar.value || windSpeed.value < 0) {
@@ -62,7 +62,7 @@ function computeBoatSpeed() {
     return
   }
 
-  paths.value = new Array<{sail: PolarSail, points: Array<[number, number]>}>()
+  paths.value = new Map<PolarSail, {sail: PolarSail, points: Array<[number, number]>, tolerences: {up: undefined, down: undefined}}>()
   max.value = 0
 
   upwind.value = 0
@@ -79,10 +79,12 @@ function computeBoatSpeed() {
     const tws = interpolationIndex(polar.value.tws, windSpeed.value)
     const twa = interpolationIndex(polar.value.twa, a)
 
+    let f = foil(a)
+
     let maxBs = 0
     let maxS = null
-    polar.value.sail.forEach((sail) => {
 
+    let bss = polar.value.sail.map((sail) => {
       if((sail.name == "LightJib" || sail.name == "LightGnk" || sail.name == "LIGHT_JIB" || sail.name == "LIGHT_GNK") && !navigateStore.options.lt) {
         return
       }
@@ -93,8 +95,15 @@ function computeBoatSpeed() {
         return
       }
 
-      const bs = (sail.speed[twa.i0][tws.i0]*tws.p0 + sail.speed[twa.i0][tws.i1]*(1-tws.p0))*twa.p0
+      let bs = (sail.speed[twa.i0][tws.i0]*tws.p0 + sail.speed[twa.i0][tws.i1]*(1-tws.p0))*twa.p0
         + (sail.speed[twa.i1][tws.i0]*tws.p0 + sail.speed[twa.i1][tws.i1]*(1-tws.p0))*(1-twa.p0)
+
+      if(navigateStore.options.foil) {
+        bs *= f
+      }
+      if(navigateStore.options.hull) {
+        bs *= polar.value!.hull.speedRatio
+      }
 
       if(bs > maxBs) {
         maxBs = bs
@@ -103,15 +112,24 @@ function computeBoatSpeed() {
       if(bs > max.value) {
         max.value = bs
       }
-    });
 
-    let f = foil(a)
-    if(navigateStore.options.foil) {
-      maxBs *= f
-    }
-    if(navigateStore.options.hull) {
-      maxBs *= polar.value.hull.speedRatio
-    }
+      return {sail: sail, bs: bs}
+    })
+
+    bss.forEach((s) => {
+      if (s && s.bs > 0 && s.bs * polar.value!.badSailTolerance >= maxBs) {
+        if (!paths.value.has(s.sail)) {
+          paths.value.set(s.sail, {sail: s.sail, points: [], tolerences: {up: undefined, down: undefined}})
+        }
+
+        if (!paths.value.get(s.sail)!.tolerences.up || paths.value.get(s.sail)!.tolerences.up![0] > a) {
+          paths.value.get(s.sail)!.tolerences.up = [a, maxBs]
+        }
+        if (!paths.value.get(s.sail)!.tolerences.down || paths.value.get(s.sail)!.tolerences.down![0] < a) {
+          paths.value.get(s.sail)!.tolerences.down = [a, maxBs]
+        }
+      }
+    })
 
     const vmg = maxBs * Math.cos(a * Math.PI/180)
 
@@ -129,7 +147,10 @@ function computeBoatSpeed() {
     if(!previousSail) {
       previousSail = maxS
     } else if(maxS != previousSail || a == 180) {
-      paths.value.push({sail: previousSail, points: points})
+      if (!paths.value.has(previousSail)) {
+        paths.value.set(previousSail, {sail: previousSail, points: [], tolerences: {up: undefined, down: undefined}})
+      }
+      paths.value.get(previousSail)!.points = points
       points = new Array<[number, number]>()
       previousSail = maxS
     }
@@ -138,7 +159,10 @@ function computeBoatSpeed() {
       boatSpeed.value[Math.round(a)] = maxBs
     }
   }
-  paths.value.push({sail: previousSail!, points: points})
+  if (!paths.value.has(previousSail!)) {
+    paths.value.set(previousSail!, {sail: previousSail!, points: [], tolerences: {up: undefined, down: undefined}})
+  }
+  paths.value.get(previousSail!)!.points = points
 }
 
 function drawSpeeds(): number {
@@ -224,13 +248,56 @@ function drawSailPaths(max: number) {
   if (size.value < 100) return
 
   paths.value.forEach((path) => {
-    let points: Array<[number, number]> = Array.from(path.points).map(([a, s]) => ([a, s * size.value / max]))
-    d3path.append("path")
-      .attr("transform", "translate(25," + height.value / 2 + ")")
-      .attr('d', lineRadial(points))
-      .style("stroke", colors[path.sail.name])
-      .style("stroke-width", 2)
-      .style("fill", "none")
+    if (path.points.length > 0) {
+      let points: Array<[number, number]> = Array.from(path.points).map(([a, s]) => ([a, s * size.value / max]))
+      d3path.append("path")
+        .attr("transform", "translate(25," + height.value / 2 + ")")
+        .attr('d', lineRadial(points))
+        .style("stroke", colors[path.sail.name])
+        .style("stroke-width", 2)
+        .style("fill", "none")
+
+      if (path.tolerences.up) {
+        d3path.append("path")
+          .attr("transform", "translate(25," + height.value / 2 + ")")
+          .attr("d", (d: any) => d3.arc()
+            .innerRadius( 0 )
+            .outerRadius( size.value )
+            .startAngle( points[0][0])
+            .endAngle( path.tolerences.up![0] * Math.PI / 180 )(d)
+            )
+          .attr('stroke', colors[path.sail.name])
+          .style("stroke-width", 0.5)
+          .attr('fill', colors[path.sail.name])
+          .style("opacity", 0.2)
+        // d3path.append("text")
+        //   .attr("transform", "translate(" + Math.round(25 + (size.value + 25) * Math.sin(Math.PI * upwind.value / 180) - 4) + "," + Math.round(height.value / 2 - (size.value + 25) * Math.cos(Math.PI * upwind.value / 180) + 4) + ")")
+        //   .text(upwind.value.toFixed(1) + "°")
+        //   .attr("font-size", "12px")
+        //   .attr("fill", "red")
+      }
+
+      if (path.tolerences.down) {
+        d3path.append("path")
+          .attr("transform", "translate(25," + height.value / 2 + ")")
+          .attr("d", (d: any) => d3.arc()
+            .innerRadius( 0 )
+            .outerRadius( size.value )
+            .startAngle( path.tolerences.down![0] * Math.PI / 180 )
+            .endAngle( points[points.length - 1][0] )(d)
+            )
+          .attr('stroke', colors[path.sail.name])
+          .style("stroke-width", 0.5)
+          .attr('fill', colors[path.sail.name])
+          .style("opacity", 0.2)
+        // d3path.append("text")
+        //   .attr("transform", "translate(" + Math.round(25 + (size.value + 25) * Math.sin(Math.PI * downwind.value / 180) - 4) + "," + Math.round(height.value / 2 - (size.value + 25) * Math.cos(Math.PI * downwind.value / 180) + 4) + ")")
+        //   .text(downwind.value.toFixed(1) + "°")
+        //   .attr("font-size", "12px")
+        //   .attr("fill", "red")
+
+      }
+    }
   })
 }
 
@@ -468,6 +535,12 @@ function stopDragTwa(e: Event) {
   e.stopPropagation()
   dragStart .value= null
 }
+
+utils.emitter.on("select", (wp: RouteWaypoint) => {
+  twa.value = Math.abs(utils.twa(wp.boat_settings.heading, wp.status.wind.direction))
+  windSpeed.value = wp.status.wind.speed
+  drawCurrent()
+})
 </script>
   
 <template>

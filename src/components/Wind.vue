@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import L from 'leaflet'
-import { computed, onBeforeMount, onMounted, ref } from 'vue';
+import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
 
-import { useWindStore, emitter as windEmitter } from '../stores/wind';
+import { useWindStore } from '../stores/wind';
 
 const props = defineProps<{
     map: L.Map,
@@ -11,14 +11,12 @@ const props = defineProps<{
 
 const windStore = useWindStore()
 
-windEmitter.on("select", (date) => select(date))
-
 const now = ref(new Date())
 now.value.setSeconds(0)
 now.value.setMilliseconds(0)
 now.value.setMinutes(now.value.getMinutes() - now.value.getMinutes()%10 + 10)
 
-const selected_date = ref(now.value)
+windStore.now = now.value
 
 const colapsed = ref(true)
 
@@ -60,7 +58,7 @@ let WindLayer = L.GridLayer.extend({
       // const ctx = offscreen.getContext('2d');
 
       // draw something asynchronously and pass the tile to the done() callback
-      windStore.drawWind(offscreen, selected_date.value, coords.x, coords.y, coords.z, size.x, size.y)
+      windStore.drawWind(offscreen, windStore.now, coords.x, coords.y, coords.z, size.x, size.y)
 
       return tile;
   },
@@ -75,7 +73,23 @@ onMounted(() => {
   })
 
   windLayer.addTo(windLayerControl)
+
+  setInterval(refresh, 5 * 60 * 1000)
 })
+
+function refresh() {
+  const new_now = new Date()
+  new_now.setSeconds(0)
+  new_now.setMilliseconds(0)
+  new_now.setMinutes(new_now.getMinutes() - new_now.getMinutes()%10 + 10)
+
+  if (now.value.getTime() != new_now.getTime()) {
+    if (windStore.now.getTime() == now.value.getTime()) {
+      windStore.now = new_now
+    }
+    now.value = new_now
+  }
+}
 
 const refTimes = computed(() => {
   const forecasts = [0, 1, 2, 3, 4, 5, 6, 9, 12, 24, 36, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
@@ -135,10 +149,8 @@ function display(h: number) {
   }
 }
 
-function select(forecast_date: Date) {
-  selected_date.value = forecast_date
-  windLayer.redraw()
-}
+watch(() => windStore.now, () => windLayer.redraw())
+
 
 </script>
 
@@ -156,7 +168,7 @@ function select(forecast_date: Date) {
           {{ r.refTime }}
         </div>
         <div class="is-clickable is-unselectable">
-          <div v-show="!colapsed || forecast.forecast == 0" v-for="forecast in r.forecasts" :key="forecast" @click="select(forecast.date)" class="p-0 has-text-centered" :class="{'selected': forecast.date == selected_date}">
+          <div v-show="!colapsed || forecast.forecast == 0" v-for="forecast in r.forecasts" :key="forecast" @click="windStore.now = forecast.date" class="p-0 has-text-centered" :class="{'selected': forecast.date.getTime() == windStore.now.getTime()}">
             {{ forecast.display }}
           </div>
         </div>
@@ -165,6 +177,9 @@ function select(forecast_date: Date) {
       <div v-show="colapsed" class="has-text-centered is-clickable" @click="colapsed = !colapsed">
         <i class="fas fa-caret-down"></i>
       </div>
+    </div>
+    <div v-else class="forecast-times">
+      <a class="button is-fullwidth is-white p-0 is-loading"><i class="fas fa-wind"></i></a>
     </div>
   </Teleport>
 </template>
