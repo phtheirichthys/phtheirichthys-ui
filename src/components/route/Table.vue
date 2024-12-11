@@ -169,8 +169,9 @@ function formatPenalties(penalties: Penalty[]) {
       type = "Sail"
     }
 
-    const minutes = (p.duration / 60).toFixed(0)
-    const secondes = String(p.duration % 60).padStart(2, '0')
+    const d: any = p.duration
+    const minutes = (d / 60).toFixed(0)
+    const secondes = String(d % 60).padStart(2, '0')
 
     if (res.length > 0) {
       res += " - "
