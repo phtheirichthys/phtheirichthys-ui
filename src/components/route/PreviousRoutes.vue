@@ -264,11 +264,19 @@ routeEmitter.on('unhighlight', date => {
 }
 
 .leaflet-tooltip.draw-tooltip .primary .foil {
-  float: right;
+  margin-left: 5px;
+  /* float: right; */
 }
 
 .leaflet-tooltip.draw-tooltip .primary .ice {
-  float: right;
+  margin-left: 5px;
+  /* float: right; */
+}
+
+.leaflet-tooltip.draw-tooltip .primary .fire {
+  margin-left: 5px;
+  /* float: right; */
+  color: #ef1780;
 }
 
 .leaflet-tooltip.draw-tooltip .secondary {

@@ -6,6 +6,7 @@ export class Data {
     race: boolean
     compress: boolean
     static VERSION = new Data("_version_", false, false)
+    static PARAMS = new Data("_params_", false, false)
     static RACES = new Data("_races_", false, false)
     static POLARS = new Data("_polars_", false, false, true)
     static BOATS = new Data("_boats_", false, false)

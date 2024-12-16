@@ -44,24 +44,7 @@ export const useSnakeStore = defineStore('snake', () => {
 
       } else {
         phtheirichthys.eval_snake(toRaw(navigateStore.polarId!), toRaw(windStore.provider), toRaw(navigateStore.options),
-          toRaw(last.value.from), toRaw(last_start_date.value), toRaw(last.value.boat_settings),
-          {
-            aground: false,
-            boat_speed: toRaw(last.value.status.boat_speed),
-            wind: toRaw(last.value.status.wind),
-            foil: toRaw(last.value.status.foil),
-            boost: toRaw(last.value.status.boost),
-            best_ratio: toRaw(last.value.status.best_ratio),
-            ratio: 0,
-            vmgs: undefined,
-            penalties: {
-              gybe: undefined,
-              sail_change: undefined,
-              tack: undefined
-            },
-            stamina: toRaw(last.value.status.stamina),
-            ice: false,
-          }, {heading: h}).then((snake_result) => {
+          toRaw(last.value.from), toRaw(last_start_date.value), toRaw(last.value.boat_settings), {heading: h}).then((snake_result) => {
           
             snake.value[h] = snake_result
             resolve(snake.value[h])

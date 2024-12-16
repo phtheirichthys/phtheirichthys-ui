@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as phtheirichthys from '@phtheirichthys/phtheirichthys/phtheirichthys'
 import PhtheirichthysWorker from '../worker?sharedworker&inline'
 import wasmUrl from '@phtheirichthys/phtheirichthys/phtheirichthys_bg.wasm?url'
+import { Params } from '../stores/params';
 
 export const emitter = mitt<Events>()
 
@@ -126,7 +127,7 @@ export function draw_wind(wind_provider: string, canvas: OffscreenCanvas, m: Dat
     worker.port.postMessage({ type: "draw-wind", canvas, provider: wind_provider, moment: m, coords: { x, y, z }, size: { width, height } }, [canvas])
 }
 
-export async function eval_snake(polarId: string, wind_provider: string, boat_options: phtheirichthys.BoatOptions, from: phtheirichthys.Coords, start_time: Date, boat_settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus, heading: phtheirichthys.Heading) {
+export async function eval_snake(polarId: string, wind_provider: string, boat_options: phtheirichthys.BoatOptions, from: phtheirichthys.Coords, start_time: Date, boat_settings: phtheirichthys.BoatSettings, heading: phtheirichthys.Heading) {
 
     return new Promise<phtheirichthys.Snake>((resolve, reject) => {
 
@@ -149,7 +150,7 @@ export async function eval_snake(polarId: string, wind_provider: string, boat_op
 
         worker.port.postMessage({
             type: "eval-snake", uuid: request_uuid,
-            route_request: { from, start_time: start_time.toISOString(), boat_settings, status },
+            route_request: { from, start_time: start_time.toISOString(), boat_settings, steps: [] },
             params: {
                 max_duration: 48,
                 polar: polarId,
@@ -190,7 +191,7 @@ export async function test_webgpu() {
 
 }
 
-export async function navigate(race: phtheirichthys.Race, wind_provider: string, options: phtheirichthys.BoatOptions, position: phtheirichthys.Coords, start_time: Date, settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus) {
+export async function navigate(params: Params, race: phtheirichthys.Race, wind_provider: string, options: phtheirichthys.BoatOptions, position: phtheirichthys.Coords, start_time: Date, settings: phtheirichthys.BoatSettings, status: phtheirichthys.BoatStatus) {
 
     console.log("navigate : ", options, position, settings, status)
 
@@ -198,23 +199,23 @@ export async function navigate(race: phtheirichthys.Race, wind_provider: string,
         from: position,
         start_time: start_time.toISOString(),
         boat_settings: settings,
-        status: status,
+        steps: params.route_steps,
     }
 
     return new Promise<phtheirichthys.RouteResult>((resolve, reject) => {
         const request_uuid = uuidv4()
         const handler = (message: MessageEvent<any>) => {
-        const { type, uuid, data } = message.data
+            const { type, uuid, data } = message.data
 
-        if (uuid === request_uuid) {
-            worker.port.removeEventListener("message", handler)
-            if (type === "navigation") {
-                resolve(data)
-            } else {
-                const { error } = message.data
-                reject(error)
+            if (uuid === request_uuid) {
+                worker.port.removeEventListener("message", handler)
+                if (type === "navigation") {
+                    resolve(data)
+                } else {
+                    const { error } = message.data
+                    reject(error)
+                }
             }
-        }
         }
         worker.port.addEventListener("message", handler)
 
@@ -239,6 +240,7 @@ export async function status(polarId: string, wind_provider: string, options: ph
         from: position,
         start_time: start_time.toISOString(),
         boat_settings: settings,
+        steps: [],
     }
 
     return new Promise<phtheirichthys.BoatStatus>((resolve, reject) => {

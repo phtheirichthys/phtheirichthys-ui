@@ -63,16 +63,20 @@ function draw() {
   }
 
   const squareSize = 20
-  // const roundSize = 20
+  const roundSize = 20
   const _editIcon = new L.DivIcon({
                   iconSize: new L.Point(squareSize, squareSize),
                   shadowSize: new L.Point(squareSize + 4, squareSize + 4),
                   className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon'
   })
-  // const _changedIcon = new L.DivIcon({
-  //                 iconSize: new L.Point(roundSize, roundSize),
-  //                 className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon changed'
-  // })
+  const _changedIcon = new L.DivIcon({
+                  iconSize: new L.Point(roundSize, roundSize),
+                  className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon changed'
+  })
+  const _fireIcon = new L.DivIcon({
+                  iconSize: new L.Point(roundSize, roundSize),
+                  className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon fire'
+  })
   // const _nightIcon = new L.DivIcon({
   //                 iconSize: new L.Point(squareSize, squareSize),
   //                 className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon night'
@@ -86,10 +90,14 @@ function draw() {
                   shadowSize: new L.Point(squareSize + 4, squareSize + 4),
                   className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon'
   })
-  // const _changedIconHighlighted = new L.DivIcon({
-  //                 iconSize: new L.Point(roundSize, roundSize),
-  //                 className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon changed'
-  // })
+  const _changedIconHighlighted = new L.DivIcon({
+                  iconSize: new L.Point(roundSize, roundSize),
+                  className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon changed'
+  })
+  const _fireIconHighlighted = new L.DivIcon({
+                  iconSize: new L.Point(roundSize, roundSize),
+                  className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon fire'
+  })
   // const _nightIconHighlighted = new L.DivIcon({
   //                 iconSize: new L.Point(squareSize, squareSize),
   //                 className: 'leaflet-div-icon leaflet-editing-icon highlighted leaflet-touch-icon night'
@@ -112,7 +120,18 @@ function draw() {
     let date = new Date(routeStore.route!.infos.start)
     date.setSeconds(date.getSeconds() + waypoint.duration)
 
-    let marker = L.marker([waypoint.from.lat, waypoint.from.lon], {icon: _editIcon, zIndexOffset: 25})
+    let icon = _editIcon
+    let iconHighlighted = _editIconHighlighted
+
+    if (waypoint.status.best_ratio < 1) {
+      icon = _fireIcon
+      iconHighlighted = _fireIconHighlighted
+    } else if (waypoint.status.change) {
+      icon = _changedIcon
+      iconHighlighted = _changedIconHighlighted
+    }
+
+    let marker = L.marker([waypoint.from.lat, waypoint.from.lon], {icon: icon, zIndexOffset: 25})
           .bindTooltip(() => utils.getTooltipTitle(new Date(routeStore.route!.infos.start), waypoint), {permanent: false, opacity: 0.9, offset: L.point(10, 0), className: 'draw-tooltip', direction: 'right'})
           .on("click", () => {
             windStore.now = date
@@ -121,7 +140,7 @@ function draw() {
           .on("tooltipopen", () => select(waypoint))
           .addTo(layer)
 
-    markers.value!.set(date.getTime(), [marker, _editIcon, _editIconHighlighted])
+    markers.value!.set(date.getTime(), [marker, icon, iconHighlighted])
   })
 
   var polylineOptions = {
@@ -203,9 +222,16 @@ routeEmitter.on('unhighlight', date => {
     background-clip: padding-box;
 }
 
+.leaflet-div-icon.leaflet-editing-icon.leaflet-touch-icon.fire {
+    background: #ef1780;
+    color: "#ef1780";
+    /* border-radius: 50%; */
+    background-clip: padding-box;
+}
+
 .leaflet-div-icon.leaflet-editing-icon.leaflet-touch-icon.night-changed {
     background: orange;
-    color: "#ff0000";
+    color: "#orange";
     /* border-radius: 50%; */
     background-clip: padding-box;
 }
@@ -250,11 +276,19 @@ routeEmitter.on('unhighlight', date => {
 }
 
 .leaflet-tooltip.draw-tooltip .primary .foil {
-  float: right;
+  margin-left: 5px;
+  /* float: right; */
 }
 
 .leaflet-tooltip.draw-tooltip .primary .ice {
-  float: right;
+  margin-left: 5px;
+  /* float: right; */
+}
+
+.leaflet-tooltip.draw-tooltip .primary .fire {
+  margin-left: 5px;
+  /* float: right; */
+  color: #ef1780;
 }
 
 .leaflet-tooltip.draw-tooltip .secondary {

@@ -139,6 +139,9 @@ export function getTooltipTitle(waypoint_date: Date, wayPosition: RouteWaypoint)
   }
 
   var primary = "<i class='fa fa-compass'></i> " + headingValue.toFixed(1) + "° <i class='fa fa-location-arrow'></i> " + twaValue.toFixed(1) + "° <span class='sail'>" + sail + "</span>"
+  if(wayPosition.status.best_ratio < 1) {
+    primary += "<span class='fire'><i class='fas fa-fire'></i></span>"
+  }
   if(wayPosition.status.ice) {
     primary += "<span class='ice'><i class='fas fa-igloo'></i></span>"
   } else if(wayPosition.status.foil > 0) {

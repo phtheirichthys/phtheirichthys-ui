@@ -7,6 +7,7 @@ import { useRacesStore } from './races'
 import { useNavigateStore } from './navigate'
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { useWindStore } from "./wind"
+import { useParamsStore } from "./params"
 
 export const emitter = mitt<Events>()
 
@@ -31,6 +32,7 @@ export const useRouteStore = defineStore('route', () => {
   const navigateStore = useNavigateStore()
   const racesStore = useRacesStore()
   const windStore = useWindStore()
+  const paramsStore = useParamsStore()
 
   const route = ref<RouteResult | null>(null)
   const previousRoutes = ref<Array<PreviousRoute>>([])
@@ -55,7 +57,7 @@ export const useRouteStore = defineStore('route', () => {
   async function navigate(raceId:string) {
     let race = racesStore.get(raceId)!;
     await windStore.isReady
-    await phtheirichthys.navigate(toRaw(race), toRaw(windStore.provider), toRaw(navigateStore.options),
+    await phtheirichthys.navigate(toRaw(paramsStore.params), toRaw(race), toRaw(windStore.provider), toRaw(navigateStore.options),
       toRaw(navigateStore.position), toRaw(navigateStore.position.start_time), toRaw(navigateStore.settings),
       toRaw(navigateStore.status),)
     .then((res) => {

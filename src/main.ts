@@ -28,12 +28,14 @@ import Boats from './components/Boats.vue'
 import Polars from './components/Polars.vue'
 import Races from './components/races/Races.vue'
 import Route from './components/Route.vue'
+import Params from './components/Params.vue'
 
 const routes = [
   { path: '/', component: Home },
   { path: '/boats', component: Boats },
   { path: '/polars', component: Polars },
   { path: '/races', component: Races },
+  { path: '/params', component: Params },
   { name: 'navigate', path: '/:boat/:race', component: Route, props: true }
 ]
 

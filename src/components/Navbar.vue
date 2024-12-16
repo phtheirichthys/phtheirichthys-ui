@@ -51,6 +51,7 @@ function switchTheme() {
         <RouterLink to="/boats" class="navbar-item">Boats</RouterLink>
         <RouterLink to="/races" class="navbar-item">Races</RouterLink>
         <RouterLink to="/polars" class="navbar-item">Polars</RouterLink>
+        <RouterLink to="/params" class="navbar-item">Params</RouterLink>
       </div>
 
       <div class="navbar-end">
