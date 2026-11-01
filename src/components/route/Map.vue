@@ -84,7 +84,7 @@ onBeforeMount(() => {
 onMounted(() => {
   map.whenReady(() => {
 
-    var imagery = L.tileLayer.provider('CartoDB.PositronNoLabels').addTo(map)
+    var imagery = L.tileLayer.provider('Stadia.AlidadeSmooth').addTo(map)
     layerControl.addBaseLayer(imagery, "Standard");
     var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png')
     layerControl.addBaseLayer(osm, "OSM")
@@ -251,7 +251,7 @@ function opacity(v: number) {
       <div class="leaflet-sidebar-pane" id="race">
         <Race :layer="map" :raceId="props.race" :edit="false" />
       </div>
-    </div>  
+    </div>
   </div>
   <Teleport to="#legend">
   <div>
@@ -267,7 +267,7 @@ function opacity(v: number) {
       <span><i class='fa fa-wind'></i> {{ navigateStore.status.wind.direction.toFixed(1) }}° {{ navigateStore.status.wind.speed.toFixed(1) }}kt</span>
       <span style="padding-left:7px;"><i class='fa fa-ship'></i> {{ navigateStore.status.boat_speed.toFixed(1) }}kt</span>
     </div>
-<!-- 
+<!--
   if(wayPosition.status.ice) {
     primary += "<span class='ice'><i class='fas fa-igloo'></i></span>"
   } else if(wayPosition.status.foil > 0) {

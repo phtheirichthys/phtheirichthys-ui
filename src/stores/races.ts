@@ -76,8 +76,9 @@ export const useRacesStore = defineStore('races', () => {
         leg: 0,
         boat: imported.boat.polar_id.toString(),
         stamina: imported.stamina,
-        start_time: imported.start.date,
-        end_time: imported.close.date,
+        // Rust expects RFC 3339 strings despite the generated `Date` type
+        start_time: new Date(imported.start.date).toISOString() as unknown as Date,
+        end_time: new Date(imported.close.date).toISOString() as unknown as Date,
         start: {lat: imported.start.lat, lon: imported.start.lon},
         buoys: buoys,
         ice_limits: imported.ice_limits,
