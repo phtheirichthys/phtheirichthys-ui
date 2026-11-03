@@ -85,13 +85,13 @@ function computeBoatSpeed() {
     let maxS = null
 
     let bss = polar.value.sail.map((sail) => {
-      if((sail.name == "LightJib" || sail.name == "LightGnk" || sail.name == "LIGHT_JIB" || sail.name == "LIGHT_GNK") && !navigateStore.options.lt) {
+      if((sail.name.toLocaleLowerCase() == "lightjib" || sail.name.toLocaleLowerCase() == "lightgnk" || sail.name.toLocaleLowerCase() == "light_jib" || sail.name.toLocaleLowerCase() == "light_gnk") && !navigateStore.options.lt) {
         return
       }
-      if((sail.name == "Staysail" || sail.name == "HeavyGnk" || sail.name == "STAYSAIL" || sail.name == "HEAVY_GNK") && !navigateStore.options.gt) {
+      if((sail.name.toLocaleLowerCase()== "staysail" || sail.name.toLocaleLowerCase() == "heavygnk" || sail.name.toLocaleLowerCase() == "heavy_gnk") && !navigateStore.options.gt) {
         return
       }
-      if((sail.name == "Code0" || sail.name == "CODE_0") && !navigateStore.options.code0) {
+      if((sail.name.toLocaleLowerCase() == "code0" || sail.name.toLocaleLowerCase() == "code_0") && !navigateStore.options.code0) {
         return
       }
 
@@ -226,20 +226,17 @@ function drawSailPaths(max: number) {
   const lineRadial = d3.lineRadial()
 
   const colors: any = {
-    "Jib"      : "#cd0342",
-    "Spi"      : "#00ff00",
-    "Staysail"    : "#0000ff",
-    "LightJib"    : "#f67876",
-    "Code0"    : "#00a000",
-    "HeavyGnk"    : "#b00000",
-    "LightGnk"    : "#d77900",
-    "JIB"      : "#cd0342",
-    "SPI"      : "#00ff00",
-    "STAYSAIL"    : "#0000ff",
-    "LIGHT_JIB"    : "#f67876",
-    "CODE_0"    : "#00a000",
-    "HEAVY_GNK"    : "#b00000",
-    "LIGHT_GNK"    : "#d77900"
+    "jib"      : "#cd0342",
+    "spi"      : "#00ff00",
+    "staysail"    : "#0000ff",
+    "lightjib"    : "#f67876",
+    "code0"    : "#00a000",
+    "heavygnk"    : "#b00000",
+    "lightgnk"    : "#d77900",
+    "light_jib"    : "#f67876",
+    "code_0"    : "#00a000",
+    "heavy_gnk"    : "#b00000",
+    "light_gnk"    : "#d77900",
   }
 
   let d3path = d3.select("#polar").select("#path")
@@ -253,7 +250,7 @@ function drawSailPaths(max: number) {
       d3path.append("path")
         .attr("transform", "translate(25," + height.value / 2 + ")")
         .attr('d', lineRadial(points))
-        .style("stroke", colors[path.sail.name])
+        .style("stroke", colors[path.sail.name.toLowerCase()])
         .style("stroke-width", 2)
         .style("fill", "none")
 
@@ -266,9 +263,9 @@ function drawSailPaths(max: number) {
             .startAngle( points[0][0])
             .endAngle( path.tolerences.up![0] * Math.PI / 180 )(d)
             )
-          .attr('stroke', colors[path.sail.name])
+          .attr('stroke', colors[path.sail.name.toLowerCase()])
           .style("stroke-width", 0.5)
-          .attr('fill', colors[path.sail.name])
+          .attr('fill', colors[path.sail.name.toLowerCase()])
           .style("opacity", 0.2)
         // d3path.append("text")
         //   .attr("transform", "translate(" + Math.round(25 + (size.value + 25) * Math.sin(Math.PI * upwind.value / 180) - 4) + "," + Math.round(height.value / 2 - (size.value + 25) * Math.cos(Math.PI * upwind.value / 180) + 4) + ")")
@@ -286,9 +283,9 @@ function drawSailPaths(max: number) {
             .startAngle( path.tolerences.down![0] * Math.PI / 180 )
             .endAngle( points[points.length - 1][0] )(d)
             )
-          .attr('stroke', colors[path.sail.name])
+          .attr('stroke', colors[path.sail.name.toLowerCase()])
           .style("stroke-width", 0.5)
-          .attr('fill', colors[path.sail.name])
+          .attr('fill', colors[path.sail.name.toLowerCase()])
           .style("opacity", 0.2)
         // d3path.append("text")
         //   .attr("transform", "translate(" + Math.round(25 + (size.value + 25) * Math.sin(Math.PI * downwind.value / 180) - 4) + "," + Math.round(height.value / 2 - (size.value + 25) * Math.cos(Math.PI * downwind.value / 180) + 4) + ")")
@@ -305,7 +302,7 @@ function drawCurrent() {
   const current = d3.select("#polar").select("#current")
 
   current.selectAll("*").remove()
-  
+
   if (size.value < 100) return
 
   current.append("line")
@@ -317,12 +314,12 @@ function drawCurrent() {
     .attr("x2", 0)
     .attr("y2", -size.value - 5)
   current.append("text")
-    .attr("transform", "translate(" + Math.round(0 + (size.value + 40) * Math.sin(Math.PI * twa.value / 180) - 4) + "," + Math.round(height.value / 2 - (size.value + 40) * Math.cos(Math.PI * twa.value / 180) + 4) + ")")
+    .attr("transform", "translate(" + Math.round(0 + (size.value - 15) * Math.sin(Math.PI * twa.value / 180) - 4 + 34 * Math.cos(Math.PI * twa.value / 180)) + "," + Math.round(height.value / 2 - (size.value - 20) * Math.cos(Math.PI * twa.value / 180) + 16) + ")")
     .text(twa.value + "°")
     .attr("font-size", "12px")
     .attr("fill", "blue")
   current.append("text")
-    .attr("transform", "translate(" + Math.round(0 + (size.value + 40) * Math.sin(Math.PI * twa.value / 180) - 4) + "," + Math.round(height.value / 2 - (size.value+ 40) * Math.cos(Math.PI * twa.value / 180) + 4 + 15) + ")")
+    .attr("transform", "translate(" + Math.round(0 + (size.value - 15) * Math.sin(Math.PI * twa.value / 180) - 4 + 34 * Math.cos(Math.PI * twa.value / 180)) + "," + Math.round(height.value / 2 - (size.value - 20) * Math.cos(Math.PI * twa.value / 180) + 16 + 15) + ")")
     .text(boatSpeed.value[twa.value].toFixed(2) + "kt")
     .attr("font-size", "12px")
     .attr("fill", "blue")
@@ -542,7 +539,7 @@ utils.emitter.on("select", (wp: RouteWaypoint) => {
   drawCurrent()
 })
 </script>
-  
+
 <template>
   <div class="test">
       <label id="label" class="label" v-if="polar">{{ polar.label }}</label>

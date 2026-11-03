@@ -91,41 +91,58 @@ function pasteData(clipboard: string) {
     heading: -1,
   }
 
-  let latRe = /([0-1]?[0-9]{2}) ?°(N|S) ([0-9]{2}) ?(?:'|‘) ?([0-9]{2})"/
-  const lat = clipboard.match(latRe);
-  if(lat) {
-    position.value.lat = utils.dms2dd({p: lat[2] === "N" ? 1 : -1, d: parseFloat(lat[1]), m: parseFloat(lat[3]), s: parseFloat(lat[4]), wrap: 0})
+  try {
+    let pos = JSON.parse(clipboard)
+
+    position.value.lat = pos.lat
+    position.value.lon = pos.lon
+    settings.value.heading = {heading: pos.heading}
+    settings.value.stamina = Math.round(pos.stamina)
+
+    settings.value.sail = { id: pos.sail % 10, index: pos.sail % 10 - 1, auto: pos.sail > 10}
+
     _pasteStatus.latitude = 1
-  }
-
-  let lonRe = /([0-1]?[0-9]{2}) ?°(E|W) ([0-9]{2}) ?(?:'|‘) ?([0-9]{2})"/
-  const lon = clipboard.match(lonRe);
-  if(lon) {
-    position.value.lon = utils.dms2dd({p: lon[2] === "E" ? 1 : -1, d: parseFloat(lon[1]), m: parseFloat(lon[3]), s: parseFloat(lon[4]), wrap})
     _pasteStatus.longitude = 1
-  }
-
-  let headingRe = /Hdg:([0-3]?[0-9]{2})/
-  const heading = clipboard.match(headingRe);
-  if(heading) {
-    settings.value.heading = {heading: parseFloat(heading[1])}
     _pasteStatus.heading = 1
-  }
+  } catch {
+
+    let latRe = /([0-1]?[0-9]{2}) ?°(N|S) ([0-9]{2}) ?(?:'|‘) ?([0-9]{2})"/
+    const lat = clipboard.match(latRe);
+    if(lat) {
+      position.value.lat = utils.dms2dd({p: lat[2] === "N" ? 1 : -1, d: parseFloat(lat[1]), m: parseFloat(lat[3]), s: parseFloat(lat[4]), wrap: 0})
+      _pasteStatus.latitude = 1
+    }
+
+    let lonRe = /([0-1]?[0-9]{2}) ?°(E|W) ([0-9]{2}) ?(?:'|‘) ?([0-9]{2})"/
+    const lon = clipboard.match(lonRe);
+    if(lon) {
+      position.value.lon = utils.dms2dd({p: lon[2] === "E" ? 1 : -1, d: parseFloat(lon[1]), m: parseFloat(lon[3]), s: parseFloat(lon[4]), wrap})
+      _pasteStatus.longitude = 1
+    }
+
+    let headingRe = /Hdg:([0-3]?[0-9]{2})/
+    const heading = clipboard.match(headingRe);
+    if(heading) {
+      settings.value.heading = {heading: parseFloat(heading[1])}
+      _pasteStatus.heading = 1
+    }
 
 
-  let latReDash = /([0-1]?[0-9]?[0-9])°([0-9]{2})'([0-9]{2}(\.[0-9]{2})?)"(N|S)/
-  const latDash = clipboard.match(latReDash);
-  if(latDash) {
-    position.value.lat = utils.dms2dd({p: latDash[5] === "N" ? 1 : -1, d: parseFloat(latDash[1]), m: parseFloat(latDash[2]), s: parseFloat(latDash[3]), wrap: 0})
-    _pasteStatus.latitude = 1
+    let latReDash = /([0-1]?[0-9]?[0-9])°([0-9]{2})'([0-9]{2}(\.[0-9]{2})?)"(N|S)/
+    const latDash = clipboard.match(latReDash);
+    if(latDash) {
+      position.value.lat = utils.dms2dd({p: latDash[5] === "N" ? 1 : -1, d: parseFloat(latDash[1]), m: parseFloat(latDash[2]), s: parseFloat(latDash[3]), wrap: 0})
+      _pasteStatus.latitude = 1
+    }
+
+    let lonReDash = /([0-1]?[0-9]?[0-9])°([0-9]{2})'([0-9]{2}(\.[0-9]{2})?)"(E|W)/
+    const lonDash = clipboard.match(lonReDash);
+    if(lonDash) {
+      position.value.lon = utils.dms2dd({p: lonDash[5] === "E" ? 1 : -1, d: parseFloat(lonDash[1]), m: parseFloat(lonDash[2]), s: parseFloat(lonDash[3]), wrap})
+      _pasteStatus.longitude = 1
+    }
   }
 
-  let lonReDash = /([0-1]?[0-9]?[0-9])°([0-9]{2})'([0-9]{2}(\.[0-9]{2})?)"(E|W)/
-  const lonDash = clipboard.match(lonReDash);
-  if(lonDash) {
-    position.value.lon = utils.dms2dd({p: lonDash[5] === "E" ? 1 : -1, d: parseFloat(lonDash[1]), m: parseFloat(lonDash[2]), s: parseFloat(lonDash[3]), wrap})
-    _pasteStatus.longitude = 1
-  }
 
   pasteStatus.value = _pasteStatus
 

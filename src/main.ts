@@ -1,5 +1,5 @@
 import { createPinia } from 'pinia'
-import VConsole from 'vconsole'
+// import VConsole from 'vconsole'
 import { createApp } from 'vue'
 import { createWebHashHistory, createRouter } from 'vue-router'
 
@@ -21,7 +21,7 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
 
 
-new VConsole()
+// new VConsole()
 
 import Home from './components/Home.vue'
 import Boats from './components/Boats.vue'

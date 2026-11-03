@@ -36,7 +36,7 @@ watch(() => props.raceId, () => {
 onMounted(() => {
   const map = new L.Map("map", {zoomControl: true, attributionControl: false, worldCopyJump: false}).setView([0, 0], 4)
   map.whenReady(() => {
-    L.tileLayer.provider('CartoDB.PositronNoLabels').addTo(map)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
     layer.addTo(map)
   })
 
@@ -82,7 +82,7 @@ function save() {
   edit.value = false
   console.log(race.value)
   racesStore.save(toRaw(race.value!))
-  
+
   emit('save', race.value.id)
 }
 

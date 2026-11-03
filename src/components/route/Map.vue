@@ -84,9 +84,7 @@ onBeforeMount(() => {
 onMounted(() => {
   map.whenReady(() => {
 
-    var imagery = L.tileLayer.provider('Stadia.AlidadeSmooth').addTo(map)
-    layerControl.addBaseLayer(imagery, "Standard");
-    var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png')
+    var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
     layerControl.addBaseLayer(osm, "OSM")
     layerControl.addTo(map)
 
@@ -166,14 +164,6 @@ function navigate() {
   })
 }
 
-function test_webgpu() {
-  phtheirichthys.test_webgpu().then(() => {
-    console.log("test ok")
-  }).catch((e) => {
-    console.error("Error testing GPU", e)
-  })
-}
-
 const sidebar = ref<String | null>(null)
 const sidebarContentWidth = ref(0)
 const sidebarContentHeight = ref(0)
@@ -220,9 +210,8 @@ function opacity(v: number) {
         <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
         <li><a role="tab" @click="center" @dblclick.stop="centerAndZoom"><i class="fa fa-dot-circle"></i></a></li>
         <li><a role="tab" @click="pan"><i class="fa fa-expand"></i></a></li>
-        <li v-if="!ready"><a class="button" disabled><i class="fa-solid fa-fish"></i></a></li>
-        <li v-if="ready"><a @click="navigate" class="button" :class="{'is-loading':navigating}"><i class="fa-solid fa-fish"></i></a></li>
-        <li><a @click="test_webgpu" class="button">WebGPU</a></li>
+        <li v-if="!ready"><a disabled><i class="fa-solid fa-fish"></i></a></li>
+        <li v-if="ready"><a @click="navigate" :class="{'is-loading':navigating}"><i class="fa-solid fa-fish"></i></a></li>
       </ul>
 
       <ul role="tablist"> <!-- bottom aligned tabs -->
