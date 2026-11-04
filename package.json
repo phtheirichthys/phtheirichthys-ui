@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.3.1",
-    "@phtheirichthys/phtheirichthys": "^0.1.82",
+    "@phtheirichthys/phtheirichthys": "^0.1.83",
     "@types/geojson": "^7946.0.14",
     "@types/leaflet": "1.9.22",
     "@types/leaflet-providers": "^1.2.5",

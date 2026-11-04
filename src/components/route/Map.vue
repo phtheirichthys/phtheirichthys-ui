@@ -211,7 +211,7 @@ function opacity(v: number) {
         <li><a role="tab" @click="center" @dblclick.stop="centerAndZoom"><i class="fa fa-dot-circle"></i></a></li>
         <li><a role="tab" @click="pan"><i class="fa fa-expand"></i></a></li>
         <li v-if="!ready"><a disabled><i class="fa-solid fa-fish"></i></a></li>
-        <li v-if="ready"><a @click="navigate" :class="{'is-loading':navigating}"><i class="fa-solid fa-fish"></i></a></li>
+        <li v-if="ready"><a @click="navigate" :class="{'is-navigating':navigating}"><i class="fa-solid fa-fish"></i></a></li>
       </ul>
 
       <ul role="tablist"> <!-- bottom aligned tabs -->
@@ -379,6 +379,16 @@ function opacity(v: number) {
 
 .foil {
   float: right;
+}
+
+@keyframes spin-y {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+.is-navigating {
+  perspective: 800px;
+  animation: spin-y 4s linear infinite;
 }
 
 </style>

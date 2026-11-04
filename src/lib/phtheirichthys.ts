@@ -24,7 +24,7 @@ export function init() {
     }
     worker.port.onmessage = (message) => {
         const { type, data } = message.data
-    
+
         switch (type) {
         case "wind-provider-status":
             emitter.emit(type, data)
@@ -127,7 +127,7 @@ export function draw_wind(wind_provider: string, canvas: OffscreenCanvas, m: Dat
     worker.port.postMessage({ type: "draw-wind", canvas, provider: wind_provider, moment: m, coords: { x, y, z }, size: { width, height } }, [canvas])
 }
 
-export async function eval_snake(polarId: string, wind_provider: string, boat_options: phtheirichthys.BoatOptions, from: phtheirichthys.Coords, start_time: Date, boat_settings: phtheirichthys.BoatSettings, heading: phtheirichthys.Heading) {
+export async function eval_snake(polarId: string, wind_provider: string, boat_options: phtheirichthys.BoatOptions, from: phtheirichthys.Coords, start_time: Date, boat_settings: phtheirichthys.BoatSettings, heading: phtheirichthys.Heading, params: Params) {
 
     return new Promise<phtheirichthys.Snake>((resolve, reject) => {
 
@@ -150,7 +150,7 @@ export async function eval_snake(polarId: string, wind_provider: string, boat_op
 
         worker.port.postMessage({
             type: "eval-snake", uuid: request_uuid,
-            route_request: { from, start_time: start_time.toISOString(), boat_settings, steps: [] },
+            route_request: { from, start_time: start_time.toISOString(), boat_settings, steps: params.route_steps },
             params: {
                 max_duration: 48,
                 polar: polarId,

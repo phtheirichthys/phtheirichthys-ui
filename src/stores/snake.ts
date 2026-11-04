@@ -4,6 +4,7 @@ import { ref, Ref, toRaw, watch } from "vue"
 import * as phtheirichthys from '../lib/phtheirichthys'
 import { useNavigateStore } from "./navigate"
 import { useWindStore } from "./wind"
+import { useParamsStore } from "./params"
 
 interface Prog {
   start_date: Date,
@@ -16,6 +17,7 @@ export const useSnakeStore = defineStore('snake', () => {
 
   const navigateStore = useNavigateStore()
   const windStore = useWindStore()
+  const paramsStore = useParamsStore()
 
   const snake = ref(new Array<Snake>())
   const progs = ref(new Array<Prog>())
@@ -26,7 +28,7 @@ export const useSnakeStore = defineStore('snake', () => {
   watch([() => navigateStore.position, () => navigateStore.settings, () => navigateStore.status], () => {
     last.value = init_last()
     last_start_date.value = new Date(navigateStore.position.start_time)
-    
+
     snake.value = new Array<Snake>()
   })
 
@@ -44,8 +46,8 @@ export const useSnakeStore = defineStore('snake', () => {
 
       } else {
         phtheirichthys.eval_snake(toRaw(navigateStore.polarId!), toRaw(windStore.provider), toRaw(navigateStore.options),
-          toRaw(last.value.from), toRaw(last_start_date.value), toRaw(last.value.boat_settings), {heading: h}).then((snake_result) => {
-          
+          toRaw(last.value.from), toRaw(last_start_date.value), toRaw(last.value.boat_settings), {heading: h}, toRaw(paramsStore.params)).then((snake_result) => {
+
             snake.value[h] = snake_result
             resolve(snake.value[h])
 
@@ -89,7 +91,7 @@ export const useSnakeStore = defineStore('snake', () => {
       progs.value = progs.value.slice(0, progIndex + 1)
       progs.value[progs.value.length - 1].waypoints = progs.value[progs.value.length - 1].waypoints.slice(0, waypointIndex + 1)
       last.value = progs.value[progs.value.length - 1].waypoints[progs.value[progs.value.length - 1].waypoints.length - 1]
-  
+
       let last_prog_date = new Date(progs.value[progs.value.length - 1].start_date.getTime())
       last_prog_date.setSeconds(last_prog_date.getSeconds() + last.value.duration)
       last_start_date.value = new Date(last_prog_date.getTime())
@@ -111,7 +113,7 @@ export const useSnakeStore = defineStore('snake', () => {
         last.value = init_last()
         last_start_date.value = new Date(navigateStore.position.start_time.getTime())
       }
-  
+
       snake.value = new Array<Snake>()
     }
   }
